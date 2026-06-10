@@ -31,10 +31,6 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
   // card, and the green/red organic-shape highlights behind it. Decision is by
   // horizontal direction (left half = NO, right half = YES), Tinder-style.
   const x = useMotionValue(0)
-  const noActive = useTransform(x, [-140, -10], [1, 0.35])
-  const yesActive = useTransform(x, [10, 140], [0.35, 1])
-  const noScale = useTransform(x, [-170, -10], [1.18, 1])
-  const yesScale = useTransform(x, [10, 170], [1, 1.18])
   const noGlow = useTransform(x, [-180, -30], [0.85, 0])
   const yesGlow = useTransform(x, [30, 180], [0, 0.85])
   useEffect(() => {
@@ -80,23 +76,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
           Is this a Data Science question?
         </h1>
 
-        {/* YES / NO indicators, OUTSIDE the card (driven by the drag). */}
-        <div className="mx-auto mt-4 flex w-full max-w-md items-center justify-between">
-          <motion.span
-            style={{ opacity: noActive, scale: noScale }}
-            className="inline-flex items-center gap-2 rounded-full border-[3px] border-embl-red px-5 py-2 text-xl font-extrabold uppercase text-embl-red"
-          >
-            <X className="h-6 w-6" aria-hidden="true" /> No
-          </motion.span>
-          <motion.span
-            style={{ opacity: yesActive, scale: yesScale }}
-            className="inline-flex items-center gap-2 rounded-full border-[3px] border-embl-green px-5 py-2 text-xl font-extrabold uppercase text-embl-green"
-          >
-            <Check className="h-6 w-6" aria-hidden="true" /> Yes
-          </motion.span>
-        </div>
-
-        <div className="relative mt-3">
+        <div className="relative mt-5">
           {/* Green (YES, right) / red (NO, left) organic-shape area highlights. */}
           <motion.div style={{ opacity: noGlow }} className="pointer-events-none absolute -left-20 top-1/2 z-0 -translate-y-1/2">
             <OrganicShape customFill="var(--embl-red)" blob={0} opacity={0.5} className="h-80 w-80" />
@@ -120,19 +100,19 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
           <button
             type="button"
             onClick={() => answer(false)}
-            className="inline-flex items-center gap-2 rounded-xl border-2 border-embl-grey-lightest px-6 py-3 text-base font-semibold text-embl-grey-darkest transition-colors hover:border-embl-red hover:text-embl-red"
+            className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-xl bg-embl-red px-8 py-3.5 text-lg font-bold text-white shadow-sm transition-opacity hover:opacity-90"
             aria-label="No, this is not a data science question"
           >
-            <X className="h-5 w-5" aria-hidden="true" />
+            <X className="h-6 w-6" aria-hidden="true" />
             No
           </button>
           <button
             type="button"
             onClick={() => answer(true)}
-            className="inline-flex items-center gap-2 rounded-xl border-2 border-embl-grey-lightest px-6 py-3 text-base font-semibold text-embl-grey-darkest transition-colors hover:border-embl-green hover:text-embl-green"
+            className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-xl bg-embl-green px-8 py-3.5 text-lg font-bold text-white shadow-sm transition-colors hover:bg-embl-green-dark"
             aria-label="Yes, this is a data science question"
           >
-            <Check className="h-5 w-5" aria-hidden="true" />
+            <Check className="h-6 w-6" aria-hidden="true" />
             Yes
           </button>
         </div>
