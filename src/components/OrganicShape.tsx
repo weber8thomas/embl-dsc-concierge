@@ -37,14 +37,17 @@ const BLOBS = [
 interface OrganicShapeProps {
   variant?: Fill
   gradient?: Gradient
+  /** Override the fill with any CSS colour (e.g. an alert red highlight). */
+  customFill?: string
   className?: string
   blob?: 0 | 1 | 2
   opacity?: number
 }
 
-export function OrganicShape({ variant = 'green-lightest', gradient, className, blob = 0, opacity = 1 }: OrganicShapeProps) {
+export function OrganicShape({ variant = 'green-lightest', gradient, customFill, className, blob = 0, opacity = 1 }: OrganicShapeProps) {
   const id = useId()
   const stops = gradient ? GRADIENTS[gradient] : null
+  const solidFill = customFill ?? SOLID[variant]
   return (
     <svg
       aria-hidden="true"
@@ -62,7 +65,7 @@ export function OrganicShape({ variant = 'green-lightest', gradient, className, 
           </linearGradient>
         </defs>
       )}
-      <path d={BLOBS[blob]} fill={stops ? `url(#${id})` : SOLID[variant]} />
+      <path d={BLOBS[blob]} fill={stops ? `url(#${id})` : solidFill} />
     </svg>
   )
 }

@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion'
 import { Check, X } from 'lucide-react'
 import type { ResolvedScenario } from '../content/schema'
 import { Shell } from '../components/Shell'
 import { ScenarioCard } from '../components/ScenarioCard'
 import { ProgressBar } from '../components/ProgressBar'
 import { StreakCounter } from '../components/StreakCounter'
+import { OrganicShape } from '../components/OrganicShape'
 
 interface SwipeProps {
   scenario: ResolvedScenario
@@ -25,6 +26,20 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
     lastId.current = scenario.id
     answered.current = false
   }
+
+  // Shared drag position — drives the card tilt, the YES/NO indicators above the
+  // card, and the green/red organic-shape highlights behind it. Decision is by
+  // horizontal direction (left half = NO, right half = YES), Tinder-style.
+  const x = useMotionValue(0)
+  const noActive = useTransform(x, [-140, -10], [1, 0.35])
+  const yesActive = useTransform(x, [10, 140], [0.35, 1])
+  const noScale = useTransform(x, [-170, -10], [1.18, 1])
+  const yesScale = useTransform(x, [10, 170], [1, 1.18])
+  const noGlow = useTransform(x, [-180, -30], [0.85, 0])
+  const yesGlow = useTransform(x, [30, 180], [0, 0.85])
+  useEffect(() => {
+    x.set(0)
+  }, [scenario.id, x])
 
   function answer(guess: boolean) {
     if (answered.current) return
@@ -52,7 +67,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
 
   return (
     <Shell onHome={onHome}>
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-5 flex items-center gap-4">
         <div className="flex-1">
           <ProgressBar current={index + 1} total={total} />
         </div>
@@ -60,10 +75,41 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
       </div>
 
       <div className="flex flex-1 flex-col justify-center">
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <ScenarioCard key={scenario.id} scenario={scenario} onAnswer={answer} />
-          </AnimatePresence>
+        {/* The constant prompt — prominent, above the card. */}
+        <h1 className="text-balance text-center text-2xl font-bold tracking-tight text-embl-grey-darkest sm:text-3xl">
+          Is this a Data Science question?
+        </h1>
+
+        {/* YES / NO indicators, OUTSIDE the card (driven by the drag). */}
+        <div className="mx-auto mt-4 flex w-full max-w-md items-center justify-between">
+          <motion.span
+            style={{ opacity: noActive, scale: noScale }}
+            className="inline-flex items-center gap-2 rounded-full border-[3px] border-embl-red px-5 py-2 text-xl font-extrabold uppercase text-embl-red"
+          >
+            <X className="h-6 w-6" aria-hidden="true" /> No
+          </motion.span>
+          <motion.span
+            style={{ opacity: yesActive, scale: yesScale }}
+            className="inline-flex items-center gap-2 rounded-full border-[3px] border-embl-green px-5 py-2 text-xl font-extrabold uppercase text-embl-green"
+          >
+            <Check className="h-6 w-6" aria-hidden="true" /> Yes
+          </motion.span>
+        </div>
+
+        <div className="relative mt-3">
+          {/* Green (YES, right) / red (NO, left) organic-shape area highlights. */}
+          <motion.div style={{ opacity: noGlow }} className="pointer-events-none absolute -left-20 top-1/2 z-0 -translate-y-1/2">
+            <OrganicShape customFill="var(--embl-red)" blob={0} opacity={0.5} className="h-80 w-80" />
+          </motion.div>
+          <motion.div style={{ opacity: yesGlow }} className="pointer-events-none absolute -right-20 top-1/2 z-0 -translate-y-1/2">
+            <OrganicShape variant="green" blob={2} opacity={0.5} className="h-80 w-80" />
+          </motion.div>
+
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              <ScenarioCard key={scenario.id} scenario={scenario} x={x} onAnswer={answer} />
+            </AnimatePresence>
+          </div>
         </div>
 
         <p className="mt-5 text-center text-sm text-embl-grey">

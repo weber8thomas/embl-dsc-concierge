@@ -1,20 +1,20 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, CircleCheck, CircleX } from 'lucide-react'
 import type { Answer } from '../game/useGame'
+import type { Competency } from '../content/schema'
 import { Shell } from '../components/Shell'
-import { EntityIcon } from '../components/EntityIcon'
-import { EntityActions } from '../components/EntityActions'
+import { ScenarioResult } from '../components/ScenarioResult'
 
 interface RevealProps {
   answer: Answer
+  competencies: Record<string, Competency>
   isLast: boolean
   onNext: () => void
   onHome: () => void
 }
 
-export function Reveal({ answer, isLast, onNext, onHome }: RevealProps) {
+export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealProps) {
   const { scenario, guess, correct } = answer
-  const entity = scenario.entityRef
   const isDS = scenario.data_science
 
   return (
@@ -29,21 +29,20 @@ export function Reveal({ answer, isLast, onNext, onHome }: RevealProps) {
           aria-live="polite"
         >
           {correct ? (
-            <span className="inline-flex items-center gap-2 text-embl-green-dark">
-              <CircleCheck className="h-6 w-6" aria-hidden="true" />
-              <span className="text-lg font-bold">Correct!</span>
+            <span className="inline-flex items-center gap-3 text-embl-green-dark">
+              <CircleCheck className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
+              <span className="text-4xl font-bold tracking-tight sm:text-5xl">Correct!</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2 text-embl-red">
-              <CircleX className="h-6 w-6" aria-hidden="true" />
-              <span className="text-lg font-bold">Not quite</span>
+            <span className="inline-flex items-center gap-3 text-embl-red">
+              <CircleX className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
+              <span className="text-4xl font-bold tracking-tight sm:text-5xl">Not quite</span>
             </span>
           )}
         </motion.div>
 
-        <p className="mt-2 text-sm text-embl-grey-dark">
-          This {isDS ? 'is' : 'is not'} a Data Science question — you answered{' '}
-          <strong>{guess ? 'yes' : 'no'}</strong>.
+        <p className="mt-3 text-lg text-embl-grey-dark sm:text-xl">
+          This {isDS ? 'is' : 'is not'} a Data Science question — you answered <strong>{guess ? 'yes' : 'no'}</strong>.
         </p>
 
         <motion.div
@@ -52,41 +51,7 @@ export function Reveal({ answer, isLast, onNext, onHome }: RevealProps) {
           transition={{ duration: 0.35, delay: 0.05 }}
           className="mt-5 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-embl-grey-lightest sm:p-8"
         >
-          {/* The scenario, restated for context */}
-          <p className="text-base font-medium text-embl-grey-darkest">“{scenario.question}”</p>
-
-          {/* Why */}
-          <p className="mt-3 text-embl-grey-dark">{scenario.why}</p>
-
-          <hr className="my-6 border-embl-grey-lightest" />
-
-          {/* Who to contact */}
-          <p className="text-xs font-semibold uppercase tracking-wide text-embl-grey">
-            {isDS ? 'Who in the DSC can help' : 'Where to go instead'}
-          </p>
-
-          <div className="mt-3 flex items-start gap-4">
-            <EntityIcon entity={entity} />
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-embl-grey-darkest">{entity.name}</h2>
-              {entity.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{entity.blurb}</p>}
-
-              {entity.people && entity.people.length > 0 && (
-                <ul className="mt-3 space-y-1 text-sm">
-                  {entity.people.map((p) => (
-                    <li key={p.name} className="text-embl-grey-darkest">
-                      <span className="font-semibold">{p.name}</span>
-                      {p.role && <span className="text-embl-grey"> — {p.role}</span>}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <EntityActions entity={entity} />
-          </div>
+          <ScenarioResult scenario={scenario} competencies={competencies} />
         </motion.div>
 
         <button

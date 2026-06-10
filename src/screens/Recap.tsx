@@ -1,21 +1,22 @@
 import { motion } from 'framer-motion'
-import { BookOpen, RotateCcw } from 'lucide-react'
-import type { EntityWithId } from '../content/schema'
+import { BookOpen, Compass, RotateCcw } from 'lucide-react'
+import type { TeamWithId } from '../content/schema'
 import { Shell } from '../components/Shell'
-import { EntityIcon } from '../components/EntityIcon'
-import { EntityActions } from '../components/EntityActions'
+import { TeamIcon } from '../components/TeamIcon'
+import { TeamActions } from '../components/TeamActions'
 
 interface RecapProps {
   score: number
   total: number
   bestStreak: number
-  entities: EntityWithId[]
+  teams: TeamWithId[]
   onPlayAgain: () => void
   onDirectory: () => void
+  onExplore: () => void
   onHome: () => void
 }
 
-export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirectory, onHome }: RecapProps) {
+export function Recap({ score, total, bestStreak, teams, onPlayAgain, onDirectory, onExplore, onHome }: RecapProps) {
   return (
     <Shell onHome={onHome}>
       <motion.div
@@ -39,7 +40,7 @@ export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirec
           </div>
         </div>
 
-        {entities.length > 0 && (
+        {teams.length > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-bold text-embl-grey-darkest">Where to go for what you saw</h2>
             <p className="mt-1 text-sm text-embl-grey-dark">
@@ -47,18 +48,15 @@ export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirec
             </p>
 
             <ul className="mt-4 space-y-3">
-              {entities.map((entity) => (
-                <li
-                  key={entity.id}
-                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-embl-grey-lightest"
-                >
+              {teams.map((team) => (
+                <li key={team.id} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-embl-grey-lightest">
                   <div className="flex items-start gap-3">
-                    <EntityIcon entity={entity} sizeClass="h-11 w-11" iconClass="h-5 w-5" />
+                    <TeamIcon icon={team.icon} sizeClass="h-11 w-11" iconClass="h-5 w-5" />
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-embl-grey-darkest">{entity.name}</h3>
-                      {entity.blurb && <p className="mt-0.5 text-sm text-embl-grey-dark">{entity.blurb}</p>}
+                      <h3 className="font-semibold text-embl-grey-darkest">{team.name}</h3>
+                      {team.blurb && <p className="mt-0.5 text-sm text-embl-grey-dark">{team.blurb}</p>}
                       <div className="mt-3">
-                        <EntityActions entity={entity} />
+                        <TeamActions team={team} />
                       </div>
                     </div>
                   </div>
@@ -77,14 +75,24 @@ export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirec
             <RotateCcw className="h-5 w-5" aria-hidden="true" />
             Play again
           </button>
-          <button
-            type="button"
-            onClick={onDirectory}
-            className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-base font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
-          >
-            <BookOpen className="h-5 w-5" aria-hidden="true" />
-            Open the directory
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <button
+              type="button"
+              onClick={onDirectory}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-base font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+            >
+              <BookOpen className="h-5 w-5" aria-hidden="true" />
+              Scenario directory
+            </button>
+            <button
+              type="button"
+              onClick={onExplore}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-base font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+            >
+              <Compass className="h-5 w-5" aria-hidden="true" />
+              Explore the DSC
+            </button>
+          </div>
         </div>
       </motion.div>
     </Shell>

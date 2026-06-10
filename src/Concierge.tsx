@@ -7,8 +7,9 @@ import { Swipe } from './screens/Swipe'
 import { Reveal } from './screens/Reveal'
 import { Recap } from './screens/Recap'
 import { Directory } from './screens/Directory'
+import { Explore } from './screens/Explore'
 
-type Screen = 'landing' | 'swipe' | 'reveal' | 'recap' | 'directory'
+type Screen = 'landing' | 'swipe' | 'reveal' | 'recap' | 'directory' | 'explore'
 
 /**
  * Screen state machine for the game, given validated content. Kept separate from
@@ -19,10 +20,14 @@ export function Concierge({ content }: { content: Content }) {
   const game = useGame(content.scenarios)
   // Optional deep-link: visiting #directory opens the directory directly.
   const initialScreen: Screen =
-    typeof window !== 'undefined' && window.location.hash === '#directory' ? 'directory' : 'landing'
+    typeof window !== 'undefined' && window.location.hash === '#directory'
+      ? 'directory'
+      : typeof window !== 'undefined' && window.location.hash === '#explore'
+        ? 'explore'
+        : 'landing'
   const [screen, setScreen] = useState<Screen>(initialScreen)
-  // Where the directory was opened from, so Back returns there.
-  const [directoryOrigin, setDirectoryOrigin] = useState<Screen>('landing')
+  // Where directory/explore were opened from, so Back returns there.
+  const [navOrigin, setNavOrigin] = useState<Screen>('landing')
 
   function start() {
     game.restart()
@@ -44,8 +49,13 @@ export function Concierge({ content }: { content: Content }) {
   }
 
   function openDirectory(from: Screen) {
-    setDirectoryOrigin(from)
+    setNavOrigin(from)
     setScreen('directory')
+  }
+
+  function openExplore(from: Screen) {
+    setNavOrigin(from)
+    setScreen('explore')
   }
 
   function goHome() {
@@ -58,7 +68,13 @@ export function Concierge({ content }: { content: Content }) {
   function renderScreen() {
     switch (screen) {
       case 'landing':
-        return <Landing onStart={start} onDirectory={() => openDirectory('landing')} />
+        return (
+          <Landing
+            onStart={start}
+            onDirectory={() => openDirectory('landing')}
+            onExplore={() => openExplore('landing')}
+          />
+        )
       case 'swipe':
         return game.current ? (
           <Swipe
@@ -74,6 +90,7 @@ export function Concierge({ content }: { content: Content }) {
         return game.currentAnswer ? (
           <Reveal
             answer={game.currentAnswer}
+            competencies={content.competencies}
             isLast={game.index >= game.total - 1}
             onNext={handleNext}
             onHome={goHome}
@@ -85,14 +102,17 @@ export function Concierge({ content }: { content: Content }) {
             score={game.score}
             total={game.total}
             bestStreak={game.bestStreak}
-            entities={game.matchedEntities}
+            teams={game.matchedTeams}
             onPlayAgain={start}
             onDirectory={() => openDirectory('recap')}
+            onExplore={() => openExplore('recap')}
             onHome={goHome}
           />
         )
       case 'directory':
-        return <Directory content={content} onBack={() => setScreen(directoryOrigin)} />
+        return <Directory content={content} onBack={() => setScreen(navOrigin)} />
+      case 'explore':
+        return <Explore content={content} onBack={() => setScreen(navOrigin)} />
     }
   }
 

@@ -1,41 +1,30 @@
 import { useRef } from 'react'
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-  type PanInfo,
-} from 'framer-motion'
-import { Check, X } from 'lucide-react'
+import { motion, useReducedMotion, useTransform, type MotionValue, type PanInfo } from 'framer-motion'
 import type { ResolvedScenario } from '../content/schema'
 import { PersonaBadge } from './PersonaBadge'
 import { OrganicShape } from './OrganicShape'
 
-const SWIPE_THRESHOLD = 110 // px (offset + projected velocity) to count as a swipe
+const SWIPE_THRESHOLD = 90 // px (offset + projected velocity) to count as a swipe
 
 interface ScenarioCardProps {
   scenario: ResolvedScenario
+  /** Shared horizontal drag position, owned by the Swipe screen so it can also
+   *  drive the YES/NO indicators rendered above the card. */
+  x: MotionValue<number>
   onAnswer: (guess: boolean) => void
 }
 
 /**
  * The swipe card. Drag right = YES, left = NO. Snaps back if released short of
- * the threshold; flings off and answers if past it. YES/NO buttons and keyboard
- * are handled by the parent Swipe screen (they call the same onAnswer).
- * Honours prefers-reduced-motion: keeps drag as an input but drops the fling and
- * tilt animations.
+ * the threshold; flings off and answers if past it. The YES/NO indicators,
+ * buttons and keyboard are handled by the parent Swipe screen.
+ * Honours prefers-reduced-motion: keeps drag as an input but drops the tilt.
  */
-export function ScenarioCard({ scenario, onAnswer }: ScenarioCardProps) {
+export function ScenarioCard({ scenario, x, onAnswer }: ScenarioCardProps) {
   const reduced = useReducedMotion()
   const committed = useRef(false)
-  const x = useMotionValue(0)
-
   const rotate = useTransform(x, [-220, 220], reduced ? [0, 0] : [-12, 12])
-  const yesOpacity = useTransform(x, [20, 140], [0, 1])
-  const noOpacity = useTransform(x, [-20, -140], [0, 1])
-  const cardImage = scenario.image
-    ? `${import.meta.env.BASE_URL}${scenario.image.replace(/^\//, '')}`
-    : undefined
+  const cardImage = scenario.image ? `${import.meta.env.BASE_URL}${scenario.image.replace(/^\//, '')}` : undefined
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (committed.current) return
@@ -55,9 +44,9 @@ export function ScenarioCard({ scenario, onAnswer }: ScenarioCardProps) {
     <motion.div
       className="relative w-full cursor-grab touch-none select-none rounded-3xl bg-white p-6 shadow-xl ring-1 ring-embl-grey-lightest active:cursor-grabbing sm:p-8"
       style={{ x, rotate }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.7}
+      drag
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      dragElastic={0.85}
       onDragEnd={handleDragEnd}
       whileTap={{ scale: reduced ? 1 : 0.98 }}
       initial={reduced ? false : { opacity: 0, y: 24, scale: 0.96 }}
@@ -72,38 +61,15 @@ export function ScenarioCard({ scenario, onAnswer }: ScenarioCardProps) {
         opacity={0.6}
       />
 
-      {/* Drag hint overlays */}
-      <motion.div
-        style={{ opacity: yesOpacity }}
-        className="pointer-events-none absolute left-5 top-5 z-10 flex items-center gap-1 rounded-lg border-2 border-embl-green px-3 py-1 text-lg font-bold uppercase text-embl-green"
-      >
-        <Check className="h-5 w-5" /> Yes
-      </motion.div>
-      <motion.div
-        style={{ opacity: noOpacity }}
-        className="pointer-events-none absolute right-5 top-5 z-10 flex items-center gap-1 rounded-lg border-2 border-embl-red px-3 py-1 text-lg font-bold uppercase text-embl-red"
-      >
-        <X className="h-5 w-5" /> No
-      </motion.div>
-
       <div className="relative">
         <PersonaBadge persona={scenario.persona} />
 
         {cardImage && (
-          <img
-            src={cardImage}
-            alt=""
-            className="mt-4 h-40 w-full rounded-2xl object-cover"
-            draggable={false}
-          />
+          <img src={cardImage} alt="" className="mt-4 h-40 w-full rounded-2xl object-cover" draggable={false} />
         )}
 
         <p className="mt-5 text-balance text-xl font-medium leading-snug text-embl-grey-darkest sm:text-2xl">
           {scenario.question}
-        </p>
-
-        <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-embl-grey">
-          Is this a Data Science question?
         </p>
       </div>
     </motion.div>

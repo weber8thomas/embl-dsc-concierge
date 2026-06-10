@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Home } from 'lucide-react'
 import { Logo } from './Logo'
 import { OrganicShape } from './OrganicShape'
+import { DataField } from './DataField'
 
 interface ShellProps {
   children: ReactNode
@@ -21,6 +22,9 @@ interface ShellProps {
 export function Shell({ children, lead, onHome, width = 'narrow' }: ShellProps) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-white">
+      {/* Subtle data-science motif (dot grid + node-link), behind the organic shapes */}
+      <DataField />
+
       {/* Background organic shapes — subtle, green, bleeding off the edges (EMBL rule) */}
       <OrganicShape
         gradient="light-depth"
@@ -55,7 +59,7 @@ export function Shell({ children, lead, onHome, width = 'narrow' }: ShellProps) 
 
       <main
         className={`relative z-10 mx-auto flex w-full flex-1 flex-col px-5 pb-10 sm:px-8 ${
-          width === 'narrow' ? 'max-w-xl' : 'max-w-4xl'
+          width === 'narrow' ? 'max-w-xl' : 'max-w-6xl'
         }`}
       >
         {children}

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { EntityWithId, ResolvedScenario } from '../content/schema'
+import type { TeamWithId, ResolvedScenario } from '../content/schema'
 
 export interface Answer {
   scenario: ResolvedScenario
@@ -29,8 +29,8 @@ export interface Game {
   streak: number
   bestStreak: number
   isFinished: boolean
-  /** Distinct entities seen across answered scenarios (for the recap routing list). */
-  matchedEntities: EntityWithId[]
+  /** Distinct teams seen across answered scenarios (for the recap routing list). */
+  matchedTeams: TeamWithId[]
   answer: (guess: boolean) => void
   next: () => void
   restart: () => void
@@ -83,10 +83,10 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
   const score = answers.filter((a) => a?.correct).length
   const isFinished = index >= deck.length
 
-  const matchedEntities = useMemo(() => {
-    const byId = new Map<string, EntityWithId>()
+  const matchedTeams = useMemo(() => {
+    const byId = new Map<string, TeamWithId>()
     for (const a of answers) {
-      if (a) byId.set(a.scenario.entityRef.id, a.scenario.entityRef)
+      if (a) byId.set(a.scenario.teamRef.id, a.scenario.teamRef)
     }
     return [...byId.values()]
   }, [answers])
@@ -102,7 +102,7 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
     streak,
     bestStreak,
     isFinished,
-    matchedEntities,
+    matchedTeams,
     answer,
     next,
     restart,
