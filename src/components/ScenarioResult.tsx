@@ -44,7 +44,7 @@ export function ScenarioResult({ scenario, competencies, showQuestion = true }: 
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-embl-grey">
             {people.length === 1 ? 'Ask' : 'People who can help'}
           </p>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {people.map((m) => (
               <li key={m.id}>
                 <ProfileCard member={m} competencies={competencies} />
