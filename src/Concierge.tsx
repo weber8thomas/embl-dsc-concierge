@@ -48,6 +48,10 @@ export function Concierge({ content }: { content: Content }) {
     setScreen('directory')
   }
 
+  function goHome() {
+    setScreen('landing')
+  }
+
   // A key that changes on every meaningful view so AnimatePresence transitions.
   const viewKey = screen === 'swipe' || screen === 'reveal' ? `${screen}-${game.index}` : screen
 
@@ -63,11 +67,17 @@ export function Concierge({ content }: { content: Content }) {
             total={game.total}
             streak={game.streak}
             onAnswer={handleAnswer}
+            onHome={goHome}
           />
         ) : null
       case 'reveal':
         return game.currentAnswer ? (
-          <Reveal answer={game.currentAnswer} isLast={game.index >= game.total - 1} onNext={handleNext} />
+          <Reveal
+            answer={game.currentAnswer}
+            isLast={game.index >= game.total - 1}
+            onNext={handleNext}
+            onHome={goHome}
+          />
         ) : null
       case 'recap':
         return (
@@ -78,6 +88,7 @@ export function Concierge({ content }: { content: Content }) {
             entities={game.matchedEntities}
             onPlayAgain={start}
             onDirectory={() => openDirectory('recap')}
+            onHome={goHome}
           />
         )
       case 'directory':

@@ -51,7 +51,7 @@ It has two parts:
 
 ```yaml
   - id: my-new-question          # a short unique name, no spaces
-    persona: postdoc             # predoc | postdoc | staff | PI | core-facility
+    persona: fellow              # fellow (predocs & postdocs) | staff | PI | core-facility
     question: My question text shown on the card.
     data_science: yes            # is this a DSC question?  yes / no  ← the correct answer
     entity: image-analysis       # which team — must match an id under entities:

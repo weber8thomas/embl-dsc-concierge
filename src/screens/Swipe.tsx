@@ -13,9 +13,10 @@ interface SwipeProps {
   total: number
   streak: number
   onAnswer: (guess: boolean) => void
+  onHome: () => void
 }
 
-export function Swipe({ scenario, index, total, streak, onAnswer }: SwipeProps) {
+export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: SwipeProps) {
   // Guard so the three input methods can't double-answer the same card. Reset
   // only when the card actually changes, not on every render.
   const answered = useRef(false)
@@ -50,7 +51,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer }: SwipeProps) 
   }, [scenario.id])
 
   return (
-    <Shell>
+    <Shell onHome={onHome}>
       <div className="mb-6 flex items-center gap-4">
         <div className="flex-1">
           <ProgressBar current={index + 1} total={total} />

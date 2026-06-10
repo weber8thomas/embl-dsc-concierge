@@ -12,11 +12,12 @@ interface RecapProps {
   entities: EntityWithId[]
   onPlayAgain: () => void
   onDirectory: () => void
+  onHome: () => void
 }
 
-export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirectory }: RecapProps) {
+export function Recap({ score, total, bestStreak, entities, onPlayAgain, onDirectory, onHome }: RecapProps) {
   return (
-    <Shell>
+    <Shell onHome={onHome}>
       <motion.div
         className="flex flex-1 flex-col py-6"
         initial={{ opacity: 0, y: 16 }}

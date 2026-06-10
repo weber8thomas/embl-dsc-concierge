@@ -7,6 +7,9 @@
 # To add a question for a team that already exists, copy a scenario block below,
 # change the text, and save. Refresh the app to see it — no rebuild needed.
 #
+# personas:   fellow  (predocs & postdocs)  |  staff  |  PI  |  core-facility
+# data_science:  yes / no   ← the correct answer (is it a Data Science Centre job?)
+#
 # Images: drop files into /public/images/ and reference them by path, e.g.
 #   image: images/cells.jpg
 #
@@ -15,6 +18,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 entities:
+  # ── Data Science Centre teams ─────────────────────────────────────────────
   image-analysis:
     name: Bioimage Analysis
     kind: dsc # dsc = part of the Data Science Centre | external = redirect elsewhere
@@ -63,35 +67,86 @@ entities:
     ticket: https://tickets.embl.org/new?queue=data-management
     mattermost: https://chat.embl.org/dsc/channels/data-management
 
+  machine-learning:
+    name: Machine Learning & AI
+    kind: dsc
+    blurb: Applying machine-learning and AI methods to research questions.
+    icon: brain
+    people:
+      - name: Lee Network
+        role: ML scientist
+        email: lee.network@embl.org
+    ticket: https://tickets.embl.org/new?queue=machine-learning
+    mattermost: https://chat.embl.org/dsc/channels/machine-learning
+
+  research-software:
+    name: Research Software Engineering
+    kind: dsc
+    blurb: Writing, speeding up and maintaining reliable research code and tools.
+    icon: cpu
+    people:
+      - name: Chris Commit
+        role: Research software engineer
+        email: chris.commit@embl.org
+    ticket: https://tickets.embl.org/new?queue=research-software
+    mattermost: https://chat.embl.org/dsc/channels/research-software
+
+  training:
+    name: Data Science Training
+    kind: dsc
+    blurb: Courses and workshops in coding, statistics and data skills.
+    icon: graduation-cap
+    people:
+      - name: Pat Teacher
+        role: Training coordinator
+        email: pat.teacher@embl.org
+    mattermost: https://chat.embl.org/dsc/channels/training
+
+  # ── External teams (redirect elsewhere) ───────────────────────────────────
   it-services:
     name: IT Services
     kind: external
-    blurb: Hardware, accounts, network and general computing support.
+    blurb: Hardware, accounts, storage, network and general computing support.
     icon: laptop
     link: https://www.embl.org/it
 
   communications:
     name: Communications
     kind: external
-    blurb: Posters, figures for outreach, press and visual identity.
+    blurb: Posters, outreach materials, press and the visual identity.
     icon: megaphone
     link: https://www.embl.org/communications
 
+  human-resources:
+    name: Human Resources
+    kind: external
+    blurb: Contracts, visas, payroll and employment questions.
+    icon: building
+    link: https://www.embl.org/hr
+
+  facilities:
+    name: Facilities & Site
+    kind: external
+    blurb: Buildings, rooms, heating and physical infrastructure.
+    icon: wrench
+    link: https://www.embl.org/facilities
+
 scenarios:
+  # ── Data Science questions (yes) ──────────────────────────────────────────
   - id: cells
-    persona: postdoc
+    persona: fellow
     question: I have 10,000 microscopy images and need to count the cells in all of them.
     data_science: yes
     entity: image-analysis
-    why: Extracting numbers from images at scale is core bioimage-analysis work.
+    why: Counting cells across thousands of images is core bioimage-analysis work.
     difficulty: easy
 
   - id: which-test
-    persona: predoc
+    persona: fellow
     question: I ran an experiment with three conditions and don't know which statistical test to use.
     data_science: yes
     entity: bio-statistics
-    why: Choosing and interpreting statistical tests is exactly what the stats team helps with.
+    why: Choosing and interpreting a statistical test is exactly what the stats team helps with.
     difficulty: easy
 
   - id: cluster
@@ -99,7 +154,7 @@ scenarios:
     question: My analysis takes days on my laptop — can I run it on the cluster instead?
     data_science: yes
     entity: workflows
-    why: Scaling pipelines onto HPC and making them reproducible is workflows-team territory.
+    why: Scaling an analysis onto the HPC cluster and making it reproducible is workflows-team territory.
     difficulty: easy
 
   - id: spreadsheet
@@ -107,9 +162,74 @@ scenarios:
     question: My lab's data is scattered across messy spreadsheets and nobody can find anything.
     data_science: yes
     entity: data-management
-    why: Structuring, documenting and sharing research data is data-management work — a boundary case people often send to IT by mistake.
+    why: Structuring, documenting and sharing a lab's data is data-management work — often mistaken for an IT problem.
     difficulty: boundary
 
+  - id: phenotype-ml
+    persona: fellow
+    question: I want to train a model to automatically classify cell phenotypes from my images.
+    data_science: yes
+    entity: machine-learning
+    why: Training a model to classify phenotypes is machine-learning support (often hand-in-hand with image analysis).
+    difficulty: easy
+
+  - id: replicates
+    persona: PI
+    question: How many biological replicates do I actually need for this experiment?
+    data_science: yes
+    entity: bio-statistics
+    why: How many replicates you need is a power-analysis question for the statisticians — best asked before you run the experiment.
+    difficulty: boundary
+
+  - id: organoid-3d
+    persona: core-facility
+    question: I need to measure the volume of organoids in 3D light-sheet stacks.
+    data_science: yes
+    entity: image-analysis
+    why: Segmenting and measuring structures in 3D microscopy volumes is advanced image analysis.
+    difficulty: easy
+
+  - id: slow-script
+    persona: fellow
+    question: My Python analysis script works but is painfully slow — can someone help speed it up?
+    data_science: yes
+    entity: research-software
+    why: Profiling and optimising research code is what research software engineers do.
+    difficulty: boundary
+
+  - id: deposit-data
+    persona: fellow
+    question: A journal wants me to deposit my data in a public repository before publishing.
+    data_science: yes
+    entity: data-management
+    why: Choosing the right repository and making data FAIR is a data-management service.
+    difficulty: easy
+
+  - id: dmp
+    persona: PI
+    question: My grant application needs a data management plan and I don't know where to start.
+    data_science: yes
+    entity: data-management
+    why: Writing the data management plan for a grant is a core data-management service.
+    difficulty: easy
+
+  - id: learn-python
+    persona: fellow
+    question: I'd like to learn enough Python to analyse my own data.
+    data_science: yes
+    entity: training
+    why: Learning to code for data analysis is covered by the Data Science Centre's training courses.
+    difficulty: easy
+
+  - id: version-control
+    persona: staff
+    question: Our analysis code is a mess of files called final_v3_REALLY_final.py — how do we manage it properly?
+    data_science: yes
+    entity: research-software
+    why: Setting up version control and good software practice is research-software-engineering help.
+    difficulty: boundary
+
+  # ── Not Data Science Centre questions (no) ────────────────────────────────
   - id: wifi
     persona: staff
     question: My laptop won't connect to the wifi.
@@ -123,5 +243,53 @@ scenarios:
     question: I need a polished poster designed for a public open day.
     data_science: no
     entity: communications
-    why: Outreach design and visual identity is a Communications job, not data science.
+    why: Designing outreach materials like posters is a Communications job, not data science.
+    difficulty: easy
+
+  - id: new-laptop
+    persona: fellow
+    question: I need a new laptop and some licensed software installed on it.
+    data_science: no
+    entity: it-services
+    why: Requesting hardware and installing licensed software is IT Services.
+    difficulty: easy
+
+  - id: visa
+    persona: fellow
+    question: I have a question about my contract and visa renewal.
+    data_science: no
+    entity: human-resources
+    why: Contracts, visas and employment questions are handled by Human Resources.
+    difficulty: easy
+
+  - id: storage-50tb
+    persona: PI
+    question: My lab generates 50 TB of imaging data a year — where can we actually store it?
+    data_science: no
+    entity: it-services
+    why: Provisioning raw storage and infrastructure is IT — though organising and sharing that data afterwards is the Data Science Centre. A classic boundary.
+    difficulty: boundary
+
+  - id: press
+    persona: staff
+    question: A journalist wants to interview me about our latest paper.
+    data_science: no
+    entity: communications
+    why: Media and press enquiries go through Communications.
+    difficulty: boundary
+
+  - id: broken-ac
+    persona: staff
+    question: The air conditioning in our office has been broken for a week.
+    data_science: no
+    entity: facilities
+    why: Building issues like heating and air conditioning are handled by Facilities.
+    difficulty: easy
+
+  - id: payslip
+    persona: staff
+    question: There's a mistake on my payslip this month.
+    data_science: no
+    entity: human-resources
+    why: Payroll and salary questions are handled by Human Resources.
     difficulty: easy

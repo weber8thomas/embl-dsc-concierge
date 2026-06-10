@@ -19,7 +19,7 @@ entities:
     kind: dsc
 scenarios:
   - id: cells
-    persona: postdoc
+    persona: fellow
     question: Count cells in my images.
     data_science: yes
     entity: image-analysis
@@ -57,7 +57,7 @@ describe('buildContent', () => {
   })
 
   it('reports an invalid persona naming the offending scenario', () => {
-    const src = validEntity.replace('persona: postdoc', 'persona: professor')
+    const src = validEntity.replace('persona: fellow', 'persona: professor')
     try {
       buildContent(parse(src))
       throw new Error('expected ContentError')

@@ -8,7 +8,10 @@ import { z } from 'zod'
  * `npm run validate` CLI (scripts/validate-content.ts) — one source of truth.
  */
 
-export const PERSONAS = ['predoc', 'postdoc', 'staff', 'PI', 'core-facility'] as const
+// Personas are a small controlled vocabulary (each maps to a label + icon in
+// src/components/personas.ts). "fellow" groups predocs and postdocs, EMBL's
+// usual umbrella term for them.
+export const PERSONAS = ['fellow', 'staff', 'PI', 'core-facility'] as const
 export const DIFFICULTIES = ['easy', 'boundary', 'hard'] as const
 
 /**

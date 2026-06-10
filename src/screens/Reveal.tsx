@@ -9,15 +9,16 @@ interface RevealProps {
   answer: Answer
   isLast: boolean
   onNext: () => void
+  onHome: () => void
 }
 
-export function Reveal({ answer, isLast, onNext }: RevealProps) {
+export function Reveal({ answer, isLast, onNext, onHome }: RevealProps) {
   const { scenario, guess, correct } = answer
   const entity = scenario.entityRef
   const isDS = scenario.data_science
 
   return (
-    <Shell>
+    <Shell onHome={onHome}>
       <div className="flex flex-1 flex-col justify-center py-6">
         {/* Correct / not-quite beat — never colour alone: icon + text both carry it. */}
         <motion.div
