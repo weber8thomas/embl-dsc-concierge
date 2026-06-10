@@ -8,102 +8,122 @@ import { buildContent, ContentError, type Content } from './schema'
 const here = dirname(fileURLToPath(import.meta.url))
 const contentPath = resolve(here, '..', '..', 'public', 'content.yaml')
 
-function parse(src: string): unknown {
-  return yaml.load(src)
-}
+const parse = (src: string): unknown => yaml.load(src)
 
-const validEntity = `
-entities:
-  image-analysis:
-    name: Bioimage Analysis
+const valid = `
+competencies:
+  statistics: { label: Statistics }
+  image-analysis: { label: Image analysis }
+teams:
+  internal-support:
+    name: Internal Support
     kind: dsc
 scenarios:
-  - id: cells
+  - id: which-test
     persona: fellow
-    question: Count cells in my images.
+    question: Which statistical test should I use?
     data_science: yes
-    entity: image-analysis
-    why: Core image-analysis work.
+    team: internal-support
+    needs: [statistics]
+    why: Stats help.
+`
+
+const withMembers = `${valid}members:
+  sam:
+    name: Sam Mean
+    team: internal-support
+    competencies: [statistics]
+  ina:
+    name: Ina Image
+    team: internal-support
+    competencies: [image-analysis]
 `
 
 describe('buildContent', () => {
-  it('accepts a minimal valid document and resolves the entity reference', () => {
-    const content = buildContent(parse(validEntity)) as Content
+  it('accepts a minimal valid document and resolves the team reference', () => {
+    const content = buildContent(parse(valid)) as Content
     expect(content.scenarios).toHaveLength(1)
     const sc = content.scenarios[0]
     expect(sc.data_science).toBe(true)
-    expect(sc.entityRef.id).toBe('image-analysis')
-    expect(sc.entityRef.name).toBe('Bioimage Analysis')
-    expect(sc.entityRef.kind).toBe('dsc')
+    expect(sc.teamRef.id).toBe('internal-support')
+    expect(sc.teamRef.kind).toBe('dsc')
   })
 
-  it('parses YAML yes/no into booleans for data_science', () => {
-    const src = validEntity.replace('data_science: yes', 'data_science: no')
-    const content = buildContent(parse(src)) as Content
+  it('matches members to a scenario by competency `needs`', () => {
+    const content = buildContent(parse(withMembers)) as Content
+    const sc = content.scenarios[0]
+    expect(sc.matchedMembers.map((m) => m.id)).toEqual(['sam']) // statistics, not image-analysis
+  })
+
+  it('falls back to all team members when a scenario has no `needs`', () => {
+    const src = withMembers.replace('    needs: [statistics]\n', '')
+    const sc = (buildContent(parse(src)) as Content).scenarios[0]
+    expect(sc.matchedMembers.map((m) => m.id).sort()).toEqual(['ina', 'sam'])
+  })
+
+  it('parses YAML yes/no into booleans', () => {
+    const content = buildContent(parse(valid.replace('data_science: yes', 'data_science: no'))) as Content
     expect(content.scenarios[0].data_science).toBe(false)
   })
 
-  it('reports a dangling entity reference by scenario id', () => {
-    const src = validEntity.replace('entity: image-analysis', 'entity: nope')
+  it('reports a dangling team reference by scenario id', () => {
+    try {
+      buildContent(parse(valid.replace('team: internal-support\n    needs', 'team: nope\n    needs')))
+      throw new Error('expected ContentError')
+    } catch (err) {
+      expect(err).toBeInstanceOf(ContentError)
+      const issues = (err as ContentError).issues
+      expect(issues.some((i) => i.where.includes('"which-test"') && i.where.includes('team') && i.message.includes('nope'))).toBe(true)
+    }
+  })
+
+  it('reports an unknown competency in needs', () => {
+    try {
+      buildContent(parse(valid.replace('needs: [statistics]', 'needs: [bogus]')))
+      throw new Error('expected ContentError')
+    } catch (err) {
+      expect(err).toBeInstanceOf(ContentError)
+      expect((err as ContentError).issues.some((i) => i.where.includes('needs') && i.message.includes('bogus'))).toBe(true)
+    }
+  })
+
+  it('reports a member referencing an unknown team', () => {
+    const src = `${valid}members:
+  sam:
+    name: Sam Mean
+    team: ghost
+`
     try {
       buildContent(parse(src))
       throw new Error('expected ContentError')
     } catch (err) {
       expect(err).toBeInstanceOf(ContentError)
-      const issues = (err as ContentError).issues
-      expect(issues[0].where).toContain('"cells"')
-      expect(issues[0].message).toContain('nope')
+      expect((err as ContentError).issues.some((i) => i.where.includes('member "sam"') && i.message.includes('ghost'))).toBe(true)
     }
   })
 
   it('reports an invalid persona naming the offending scenario', () => {
-    const src = validEntity.replace('persona: fellow', 'persona: professor')
-    try {
-      buildContent(parse(src))
-      throw new Error('expected ContentError')
-    } catch (err) {
-      expect(err).toBeInstanceOf(ContentError)
-      const issues = (err as ContentError).issues
-      expect(issues.some((i) => i.where.includes('"cells"') && i.where.includes('persona'))).toBe(true)
-    }
+    expect(() => buildContent(parse(valid.replace('persona: fellow', 'persona: professor')))).toThrow(ContentError)
   })
 
   it('reports a missing required field (why)', () => {
-    const src = validEntity.replace('    why: Core image-analysis work.\n', '')
-    expect(() => buildContent(parse(src))).toThrow(ContentError)
+    expect(() => buildContent(parse(valid.replace('    why: Stats help.\n', '')))).toThrow(ContentError)
   })
 
-  it('rejects duplicate scenario ids', () => {
-    const dup = `${validEntity}
-  - id: cells
-    persona: staff
-    question: Another one with the same id.
-    data_science: no
-    entity: image-analysis
-    why: Duplicate id on purpose.
-`
-    try {
-      buildContent(parse(dup))
-      throw new Error('expected ContentError')
-    } catch (err) {
-      expect(err).toBeInstanceOf(ContentError)
-      expect((err as ContentError).issues.some((i) => i.message.includes('duplicate'))).toBe(true)
-    }
-  })
-
-  it('rejects an entity missing its required kind', () => {
-    const src = validEntity.replace('    kind: dsc\n', '')
-    expect(() => buildContent(parse(src))).toThrow(ContentError)
+  it('rejects a team missing its required kind', () => {
+    expect(() => buildContent(parse(valid.replace('    kind: dsc\n', '')))).toThrow(ContentError)
   })
 })
 
 describe('seed public/content.yaml', () => {
-  it('is valid and ships several scenarios', () => {
+  it('is valid and ships a full catalogue', () => {
     const content = buildContent(parse(readFileSync(contentPath, 'utf8'))) as Content
-    expect(content.scenarios.length).toBeGreaterThanOrEqual(6)
-    // Every scenario must resolve to a real entity.
-    for (const sc of content.scenarios) {
-      expect(content.entities[sc.entity]).toBeDefined()
-    }
+    expect(content.scenarios.length).toBeGreaterThanOrEqual(20)
+    expect(content.members.length).toBeGreaterThanOrEqual(20)
+    // Every scenario resolves to a real team.
+    for (const sc of content.scenarios) expect(content.teams[sc.team]).toBeDefined()
+    // Every DS-yes scenario routed to a DSC team surfaces at least one person.
+    const dsTeamScenarios = content.scenarios.filter((s) => s.data_science && content.teams[s.team].kind === 'dsc')
+    for (const sc of dsTeamScenarios) expect(sc.matchedMembers.length).toBeGreaterThan(0)
   })
 })

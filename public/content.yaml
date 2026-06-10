@@ -1,108 +1,126 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# DSC Concierge content — edit this file to add or change questions.
-# No coding needed.
+# DSC Concierge content — edit this file to add or change anything shown in the app.
+# No coding needed. Sections (in this file):
 #
-#   1) Define teams under `entities:`   2) Add questions under `scenarios:`
+#   pillars       the 4 cross-cutting DSC pillars (training, consulting, community, infrastructure)
+#   competencies  the controlled list of skill tags used by members & scenarios
+#   teams         the DSC workstreams + external targets (was the routing "entities")
+#   members       the people, shown in EMBL vf-profile style
+#   platforms     concepts & platforms catalogue
+#   training      training offerings catalogue
+#   services      services catalogue (links can be filled in later)
+#   scenarios     the swipe questions
 #
-# To add a question for a team that already exists, copy a scenario block below,
-# change the text, and save. Refresh the app to see it — no rebuild needed.
+# To add a question: copy a scenario block, change the text, set `team:` to a team id
+# and (optionally) `needs:` to competency tags — the reveal then shows the matching people.
+# personas:  fellow (predocs & postdocs) | staff | PI | core-facility
+# data_science:  yes / no   ← the correct answer
 #
-# personas:   fellow  (predocs & postdocs)  |  staff  |  PI  |  core-facility
-# data_science:  yes / no   ← the correct answer (is it a Data Science Centre job?)
-#
-# Images: drop files into /public/images/ and reference them by path, e.g.
-#   image: images/cells.jpg
-#
-# Tip: run `npm run validate` to check this file. It prints friendly errors that
-# name the exact scenario id and field if anything is missing or misspelled.
+# Tip: run `npm run validate` to check this file, and `npm run catalog` to regenerate
+# the dsc-catalog.xlsx spreadsheet from it.
 # ─────────────────────────────────────────────────────────────────────────────
 
-entities:
-  # ── Data Science Centre teams ─────────────────────────────────────────────
-  image-analysis:
-    name: Bioimage Analysis
-    kind: dsc # dsc = part of the Data Science Centre | external = redirect elsewhere
-    blurb: We help extract quantitative data from microscopy and other images.
+pillars:
+  training:
+    name: Training
+    blurb: Courses and workshops that build data and software skills.
+    icon: graduation-cap
+  consulting:
+    name: Consulting
+    blurb: One-to-one expert advice on your data, analysis and methods.
+    icon: brain
+  community:
+    name: Community
+    blurb: Connecting people, channels and events across EMBL data science.
+    icon: share
+  infrastructure:
+    name: Infrastructure
+    blurb: Shared platforms, compute and tools for doing the work.
+    icon: server
+
+# Controlled list of competency tags. Members are tagged with these, and a
+# scenario's `needs:` references them to surface the right people.
+competencies:
+  image-analysis: { label: Image analysis }
+  statistics: { label: Statistics }
+  modeling: { label: Mathematical modeling }
+  data-management: { label: Data management }
+  workflows: { label: Scientific workflows }
+  machine-learning: { label: Machine learning & AI }
+  software: { label: Research software }
+  web: { label: Web & dashboards }
+  data-integration: { label: Data integration }
+  training: { label: Training }
+  community: { label: Community }
+  leadership: { label: Leadership }
+  operations: { label: Operations }
+  research: { label: Research }
+
+teams:
+  # ── DSC service teams (scenarios route here) ──────────────────────────────
+  internal-support:
+    name: Data Science Internal Support
+    kind: dsc
+    blurb: Consulting, training, community and infrastructure support for EMBL researchers.
+    icon: brain
+    pillars: [consulting, training, community, infrastructure]
+    link: https://www.embl.org/about/info/data-science-centre/
+    mattermost: https://chat.embl.org/embl/channels/data-science
+    ticket: https://tickets.embl.org/new?queue=data-science # placeholder — update to your real queue
+
+  bioimage-analysis:
+    name: Bioimage Analysis Service
+    kind: dsc
+    blurb: Reproducible extraction of quantitative information from microscopy data.
     icon: microscope
-    people:
-      - name: Jane Doe
-        role: Image analyst
-        email: jane.doe@embl.org
-    ticket: https://tickets.embl.org/new?queue=image-analysis
-    mattermost: https://chat.embl.org/dsc/channels/image-analysis
-
-  bio-statistics:
-    name: Statistics & Data Analysis
-    kind: dsc
-    blurb: Experimental design, statistical testing, modelling and interpretation.
-    icon: sigma
-    people:
-      - name: Sam Mean
-        role: Biostatistician
-        email: sam.mean@embl.org
-    ticket: https://tickets.embl.org/new?queue=statistics
-    mattermost: https://chat.embl.org/dsc/channels/statistics
-
-  workflows:
-    name: Scientific Workflows & HPC
-    kind: dsc
-    blurb: Scaling pipelines on the cluster, reproducible workflows and compute.
-    icon: workflow
-    people:
-      - name: Alex Pipe
-        role: Workflow engineer
-        email: alex.pipe@embl.org
-    ticket: https://tickets.embl.org/new?queue=workflows
-    mattermost: https://chat.embl.org/dsc/channels/workflows
+    pillars: [consulting, infrastructure, training]
+    link: https://www.embl.org/about/info/data-science-centre/
+    mattermost: https://chat.embl.org/embl/channels/image-analysis
+    ticket: https://tickets.embl.org/new?queue=image-analysis # placeholder
 
   data-management:
     name: Data Management
     kind: dsc
-    blurb: Organising, documenting and sharing research data (FAIR, RDM plans).
+    blurb: Making data workflows easier, more robust, reproducible and FAIR.
     icon: database
-    people:
-      - name: Robin Steward
-        role: Data steward
-        email: robin.steward@embl.org
-    ticket: https://tickets.embl.org/new?queue=data-management
-    mattermost: https://chat.embl.org/dsc/channels/data-management
+    pillars: [consulting, infrastructure]
+    link: https://www.embl.org/about/info/data-science-centre/
+    mattermost: https://chat.embl.org/embl/channels/data-management
+    ticket: https://tickets.embl.org/new?queue=data-management # placeholder
 
-  machine-learning:
-    name: Machine Learning & AI
+  modis:
+    name: MODIS — Multimodal Open Data Integration Support
     kind: dsc
-    blurb: Applying machine-learning and AI methods to research questions.
-    icon: brain
-    people:
-      - name: Lee Network
-        role: ML scientist
-        email: lee.network@embl.org
-    ticket: https://tickets.embl.org/new?queue=machine-learning
-    mattermost: https://chat.embl.org/dsc/channels/machine-learning
+    blurb: Solutions and support for FAIR data management, integration and publication.
+    icon: share
+    pillars: [infrastructure, consulting]
+    link: https://www.embl.org/about/info/data-science-centre/
+    mattermost: https://chat.embl.org/embl/channels/modis
+    ticket: https://tickets.embl.org/new?queue=modis # placeholder
 
-  research-software:
-    name: Research Software Engineering
+  # ── Other DSC groups (shown in the People directory; not scenario targets) ─
+  chairs:
+    name: Chairs
     kind: dsc
-    blurb: Writing, speeding up and maintaining reliable research code and tools.
-    icon: cpu
-    people:
-      - name: Chris Commit
-        role: Research software engineer
-        email: chris.commit@embl.org
-    ticket: https://tickets.embl.org/new?queue=research-software
-    mattermost: https://chat.embl.org/dsc/channels/research-software
+    blurb: Scientific leadership of the Data Science Centre.
+    icon: building
+    link: https://www.embl.org/about/info/data-science-centre/members/
 
-  training:
-    name: Data Science Training
+  management:
+    name: Management
     kind: dsc
-    blurb: Courses and workshops in coding, statistics and data skills.
-    icon: graduation-cap
-    people:
-      - name: Pat Teacher
-        role: Training coordinator
-        email: pat.teacher@embl.org
-    mattermost: https://chat.embl.org/dsc/channels/training
+    blurb: Operations and coordination of the Data Science Centre.
+    icon: settings
+    link: https://www.embl.org/about/info/data-science-centre/members/
 
-  # ── External teams (redirect elsewhere) ───────────────────────────────────
+  fellows:
+    name: Fellows
+    kind: dsc
+    blurb: Fellows and visiting researchers within the Data Science Centre.
+    icon: flask
+    link: https://www.embl.org/about/info/data-science-centre/members/
+
+  # ── External team (non-DS answers route here) ────────────────────────────
   it-services:
     name: IT Services
     kind: external
@@ -110,13 +128,318 @@ entities:
     icon: laptop
     link: https://www.embl.org/it
 
+members:
+  # ── Chairs ────────────────────────────────────────────────────────────────
+  jan-korbel:
+    name: Jan Korbel
+    position: Interim Head of EMBL Heidelberg
+    team: chairs
+    competencies: [leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60002416.jpg?itok=CaVIg8qn
+  henning-hermjakob:
+    name: Henning Hermjakob
+    position: Head of Molecular Systems
+    team: chairs
+    competencies: [leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60002342.jpg?itok=j7Mhix-n
+
+  # ── Internal Support Team ──────────────────────────────────────────────────
+  lisanna-paladin:
+    name: Lisanna Paladin
+    position: Community and Internal Support Lead
+    team: internal-support
+    competencies: [community, training, leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60036724.jpg?itok=KkcLm7zQ
+  sarah-kaspar:
+    name: Sarah Kaspar
+    position: Interim Data Science Community and Internal Support Lead
+    team: internal-support
+    competencies: [statistics, training, community]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60034548.jpg?itok=g45YuPpw
+  deborah-udoh:
+    name: Deborah Udoh
+    position: Scientific Community Manager
+    team: internal-support
+    competencies: [community]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60101075.jpg?itok=yAUlN6T3
+  eva-maria-geissen:
+    name: Eva-Maria Geissen
+    position: Computational Biologist
+    team: internal-support
+    competencies: [modeling, statistics]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60026366.jpg?itok=1L1JT6Zs
+  felix-schneider:
+    name: Felix Schneider
+    position: Computational Biologist
+    team: internal-support
+    competencies: [statistics, software]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60041652.jpg?itok=uaBzvsJ3
+  isabela-paredes-cisneros:
+    name: Isabela Paredes-Cisneros
+    position: Project Manager – Learning and Impact Assessment
+    team: internal-support
+    competencies: [training]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60041255.jpg?itok=lInGfqsB
+  jacobo-miranda:
+    name: Jacobo Miranda
+    position: Bioinformatics Training Officer
+    team: internal-support
+    competencies: [training]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60044622.jpg?itok=lPLNMAY6
+  renato-alves:
+    name: Renato Alves
+    position: Senior Bioinformatics Community Manager
+    team: internal-support
+    competencies: [community, software, training]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60022244.jpg?itok=goRi_n6M
+  yuhong-liu:
+    name: Yuhong Liu
+    position: Mathematical Modeling Specialist (Life Sciences)
+    team: internal-support
+    competencies: [modeling]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100952.jpg?itok=hyp9yTxB
+
+  # ── Bioimage Analysis Service Team ─────────────────────────────────────────
+  christian-tischer:
+    name: Christian Tischer
+    position: Team Leader
+    team: bioimage-analysis
+    competencies: [image-analysis, leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60005645.jpg?itok=96bzWDuh
+  arif-ul-maula-khan:
+    name: Arif Ul Maula Khan
+    position: Bioimage Analyst
+    team: bioimage-analysis
+    competencies: [image-analysis]
+  yi-sun:
+    name: Yi Sun
+    position: Research Software Engineer
+    team: bioimage-analysis
+    competencies: [software, image-analysis, machine-learning]
+  jean-karim-heriche:
+    name: Jean-Karim Hériché
+    position: Computational Scientist – Bioimage Data Analysis and Management
+    team: bioimage-analysis
+    competencies: [image-analysis, machine-learning, data-management, statistics]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60008447.jpg?itok=wYk7uKHO
+  leila-abbaspour:
+    name: Leila Abbaspour
+    position: Research Software Engineer for Bioimage Analysis
+    team: bioimage-analysis
+    competencies: [software, image-analysis]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100285.jpg?itok=bPkTsJtR
+
+  # ── Data Management Team ───────────────────────────────────────────────────
+  erick-martins-ratamero:
+    name: Erick Martins Ratamero
+    position: Data Management Coordinator
+    team: data-management
+    competencies: [data-management, leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100500.jpg?itok=PQgVMvmw
+  tanuja-selvaraj:
+    name: Tanuja Selvaraj
+    position: Data Platform Developer
+    team: data-management
+    competencies: [data-management, software]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60044184.jpg?itok=NaMbcwuX
+  francesco-tabaro:
+    name: Francesco Tabaro
+    position: Genomics Data Platform Developer
+    team: data-management
+    competencies: [data-management, software]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60034623.jpg?itok=v-f-IreS
+  nora-vivanco-gonzalez:
+    name: Nora Vivanco Gonzalez
+    position: Data Scientist for Imaging and Omics
+    team: data-management
+    competencies: [data-management, image-analysis, statistics]
+
+  # ── MODIS ──────────────────────────────────────────────────────────────────
+  charles-girardot:
+    name: Charles Girardot
+    position: Head of Multimodal Open Data Integration Support
+    team: modis
+    competencies: [data-integration, workflows, leadership]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60002771.jpg?itok=Zh7yV9sG
+  matthias-monfort:
+    name: Matthias Monfort
+    position: Web Developer / Workflow Management
+    team: modis
+    competencies: [workflows, software, web]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60018989.jpg?itok=bK7v9CaG
+  nayeem-reza:
+    name: Nayeem Reza
+    position: Senior Software Engineer
+    team: modis
+    competencies: [software, web]
+
+  # ── Fellows & Management ───────────────────────────────────────────────────
+  thomas-weber:
+    name: Thomas Weber
+    position: Research Fellow (ARISE)
+    team: fellows
+    competencies: [research]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60038718.jpg?itok=eQBkIfeV
+  nina-habermann:
+    name: Nina Habermann
+    position: Operations Manager Data Science Centre
+    team: management
+    competencies: [operations]
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60020866.jpg?itok=D2zPfuft
+
+platforms:
+  band:
+    name: BAND / BARD
+    category: Compute & desktops
+    blurb: Browser-based remote desktop with image-analysis tools running on EMBL compute.
+    url: https://github.com/embl-cba/band
+    pillars: [infrastructure]
+  jupyterhub:
+    name: JupyterHub on Kubernetes
+    category: Compute & desktops
+    blurb: Browser-based RStudio, JupyterLab, code-server and virtual desktops with shared compute.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [infrastructure]
+  galaxy:
+    name: Galaxy
+    category: Workflows
+    blurb: Web platform for reproducible, FAIR bioinformatics workflows.
+    url: https://galaxyproject.org/
+    pillars: [infrastructure, training]
+  workflows:
+    name: Scientific workflows (Nextflow, Snakemake)
+    category: Workflows
+    blurb: Reproducible, scalable analysis pipelines.
+    url: https://www.nextflow.io/
+    pillars: [infrastructure, consulting]
+  shinyproxy:
+    name: ShinyProxy
+    category: Apps & dashboards
+    blurb: Host containerised interactive web apps and Shiny dashboards.
+    url: https://www.shinyproxy.io/
+    pillars: [infrastructure]
+  depictio:
+    name: Depictio
+    category: Apps & dashboards
+    blurb: Build interactive dashboards from workflow outputs (Nextflow, Snakemake, Galaxy).
+    url: https://github.com/depictio/depictio
+    pillars: [infrastructure]
+  gitlab:
+    name: GitLab
+    category: Collaboration
+    blurb: EMBL's self-hosted Git for code, CI/CD and Pages.
+    url: https://about.gitlab.com/
+    pillars: [infrastructure, community]
+  mattermost:
+    name: EMBL Chat (Mattermost)
+    category: Collaboration
+    blurb: Team chat and topic channels across EMBL.
+    url: https://chat.embl.org/
+    pillars: [community]
+  hedgedoc:
+    name: pad-bio (HedgeDoc)
+    category: Collaboration
+    blurb: Real-time collaborative markdown notes and documentation.
+    url: https://hedgedoc.org/
+    pillars: [community]
+  limesurvey:
+    name: LimeSurvey
+    category: Collaboration
+    blurb: Surveys and feedback collection for events and the community.
+    url: https://www.limesurvey.org/
+    pillars: [community]
+  labid:
+    name: LabID
+    category: Data management
+    blurb: Electronic lab notebook, inventory and sample/dataset tracking.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [infrastructure, consulting]
+  ds-wizard:
+    name: Data Stewardship Wizard
+    category: Data management
+    blurb: Build data management plans interactively.
+    url: https://ds-wizard.org/
+    pillars: [consulting, training]
+  data-submission:
+    name: Data submission support
+    category: Data management
+    blurb: Guidance on depositing data in the right public repository (FAIR).
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [consulting]
+
+training:
+  carpentries:
+    name: Software & Data Carpentries
+    blurb: Hands-on workshops in Git, shell, Python and R for reproducible research.
+    url: https://carpentries.org/
+    pillars: [training, community]
+  train-the-trainer:
+    name: Train-the-Trainer
+    blurb: Learn to teach — curriculum design, facilitation and learner engagement.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [training, community]
+  experimental-design:
+    name: Experimental design
+    blurb: Plan studies, power and sample size before you run the experiment.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [training, consulting]
+  statistical-analysis:
+    name: Statistical analysis
+    blurb: Statistical testing, modelling and interpretation of your data.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [training, consulting]
+  mathematical-modeling:
+    name: Mathematical modeling
+    blurb: Modelling biological systems quantitatively.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [training, consulting]
+  cloud-computing:
+    name: Cloud computing
+    blurb: Containers, web apps and running code on EMBL cloud infrastructure.
+    url: https://www.embl.org/about/info/data-science-centre/
+    pillars: [training, infrastructure]
+  management-plans:
+    name: Data & software management plans
+    blurb: Write data and software management plans, with a guided wizard.
+    url: https://ds-wizard.org/
+    pillars: [training, consulting]
+
+# Services catalogue. Links will be provided later — leave `link` empty until then.
+services:
+  - id: consulting
+    name: Data science consulting
+    blurb: Book a one-to-one session with a data-science expert.
+    team: internal-support
+    link: ""
+  - id: bioimage-service
+    name: Bioimage analysis service
+    blurb: Get help extracting quantitative data from your microscopy images.
+    team: bioimage-analysis
+    link: ""
+  - id: data-management-support
+    name: Data management support
+    blurb: Plan, organise, document and share your research data (FAIR / RDM).
+    team: data-management
+    link: ""
+  - id: training-courses
+    name: Training courses & workshops
+    blurb: Browse and sign up for data and software skills courses.
+    team: internal-support
+    link: ""
+  - id: infrastructure-access
+    name: Access to compute platforms
+    blurb: Get access to JupyterHub, BAND, Galaxy and other shared platforms.
+    team: modis
+    link: ""
+
 scenarios:
   # ── Data Science questions (yes) ──────────────────────────────────────────
   - id: cells
     persona: fellow
     question: I have 10,000 microscopy images and need to count the cells in all of them.
     data_science: yes
-    entity: image-analysis
+    team: bioimage-analysis
+    needs: [image-analysis]
     why: Counting cells across thousands of images is core bioimage-analysis work.
     difficulty: easy
 
@@ -124,23 +447,26 @@ scenarios:
     persona: fellow
     question: I ran an experiment with three conditions and don't know which statistical test to use.
     data_science: yes
-    entity: bio-statistics
-    why: Choosing and interpreting a statistical test is exactly what the stats team helps with.
+    team: internal-support
+    needs: [statistics]
+    why: Choosing and interpreting a statistical test is exactly what the internal support team's statisticians help with.
     difficulty: easy
 
   - id: cluster
     persona: staff
-    question: My analysis takes days on my laptop — can I run it on the cluster instead?
+    question: My analysis takes days on my laptop — can I run it as a proper pipeline on the cluster?
     data_science: yes
-    entity: workflows
-    why: Scaling an analysis onto the HPC cluster and making it reproducible is workflows-team territory.
+    team: modis
+    needs: [workflows]
+    why: Turning an analysis into a scalable, reproducible workflow is MODIS / workflow-management territory.
     difficulty: easy
 
   - id: spreadsheet
     persona: PI
     question: My lab's data is scattered across messy spreadsheets and nobody can find anything.
     data_science: yes
-    entity: data-management
+    team: data-management
+    needs: [data-management]
     why: Structuring, documenting and sharing a lab's data is data-management work — often mistaken for an IT problem.
     difficulty: boundary
 
@@ -148,15 +474,17 @@ scenarios:
     persona: fellow
     question: I want to train a model to automatically classify cell phenotypes from my images.
     data_science: yes
-    entity: machine-learning
-    why: Training a model to classify phenotypes is machine-learning support (often hand-in-hand with image analysis).
+    team: bioimage-analysis
+    needs: [machine-learning, image-analysis]
+    why: Training a model to classify phenotypes from images combines machine learning with bioimage analysis.
     difficulty: easy
 
   - id: replicates
     persona: PI
     question: How many biological replicates do I actually need for this experiment?
     data_science: yes
-    entity: bio-statistics
+    team: internal-support
+    needs: [statistics]
     why: How many replicates you need is a power-analysis question for the statisticians — best asked before you run the experiment.
     difficulty: boundary
 
@@ -164,7 +492,8 @@ scenarios:
     persona: core-facility
     question: I need to measure the volume of organoids in 3D light-sheet stacks.
     data_science: yes
-    entity: image-analysis
+    team: bioimage-analysis
+    needs: [image-analysis]
     why: Segmenting and measuring structures in 3D microscopy volumes is advanced image analysis.
     difficulty: easy
 
@@ -172,15 +501,17 @@ scenarios:
     persona: fellow
     question: My Python analysis script works but is painfully slow — can someone help speed it up?
     data_science: yes
-    entity: research-software
-    why: Profiling and optimising research code is what research software engineers do.
+    team: internal-support
+    needs: [software]
+    why: Profiling and optimising research code is research-software-engineering help.
     difficulty: boundary
 
   - id: deposit-data
     persona: fellow
     question: A journal wants me to deposit my data in a public repository before publishing.
     data_science: yes
-    entity: data-management
+    team: data-management
+    needs: [data-management]
     why: Choosing the right repository and making data FAIR is a data-management service.
     difficulty: easy
 
@@ -188,7 +519,8 @@ scenarios:
     persona: PI
     question: My grant application needs a data management plan and I don't know where to start.
     data_science: yes
-    entity: data-management
+    team: data-management
+    needs: [data-management]
     why: Writing the data management plan for a grant is a core data-management service.
     difficulty: easy
 
@@ -196,42 +528,44 @@ scenarios:
     persona: fellow
     question: I'd like to learn enough Python to analyse my own data.
     data_science: yes
-    entity: training
-    why: Learning to code for data analysis is covered by the Data Science Centre's training courses.
+    team: internal-support
+    needs: [training]
+    why: Learning to code for data analysis is covered by the Data Science Centre's training offer.
     difficulty: easy
 
   - id: version-control
     persona: staff
     question: Our analysis code is a mess of files called final_v3_REALLY_final.py — how do we manage it properly?
     data_science: yes
-    entity: research-software
+    team: internal-support
+    needs: [software, training]
     why: Setting up version control and good software practice is research-software-engineering help.
     difficulty: boundary
 
   # ── Not the Data Science Centre (no) ──────────────────────────────────────
-  # These sound computational/data-ish, but the actual need is IT infrastructure,
+  # These sound computational/data-ish, but the real need is IT infrastructure,
   # access or licences — the DSC↔IT boundary the booth is meant to clarify.
   - id: gpu-server
     persona: PI
     question: I need a powerful GPU machine to train my deep-learning models.
     data_science: no
-    entity: it-services
-    why: Buying and running GPU hardware is IT. Designing and training the model itself is the DSC's Machine Learning team — so come to us once the machine exists.
+    team: it-services
+    why: Buying and running GPU hardware is IT. Designing and training the model itself is the DSC — so come to us once the machine exists.
     difficulty: boundary
 
   - id: cluster-account
     persona: fellow
     question: I can't log in to the HPC cluster — my account isn't working.
     data_science: no
-    entity: it-services
-    why: Accounts and access are managed by IT. How to actually run your analysis on the cluster is the DSC's Workflows team.
+    team: it-services
+    why: Accounts and access are managed by IT. How to actually run your analysis on the cluster is the DSC.
     difficulty: boundary
 
   - id: matlab-license
     persona: staff
     question: I need a MATLAB licence installed so I can run an analysis script.
     data_science: no
-    entity: it-services
+    team: it-services
     why: Software licences and installation are handled by IT — even when the software is for data analysis.
     difficulty: boundary
 
@@ -239,7 +573,7 @@ scenarios:
     persona: PI
     question: Can you set up a database server to hold my lab's data?
     data_science: no
-    entity: it-services
+    team: it-services
     why: Hosting and maintaining a database server is IT infrastructure. Structuring the data and making it FAIR is the DSC's Data Management team.
     difficulty: boundary
 
@@ -247,7 +581,7 @@ scenarios:
     persona: staff
     question: Our shared network drive is full and I can't save my results.
     data_science: no
-    entity: it-services
+    team: it-services
     why: Storage capacity and network drives are IT. The DSC can later help you organise and archive what's on them.
     difficulty: boundary
 
@@ -255,7 +589,7 @@ scenarios:
     persona: fellow
     question: The shared JupyterHub server keeps crashing.
     data_science: no
-    entity: it-services
+    team: it-services
     why: Keeping the server infrastructure running is IT. Help writing or fixing the notebooks themselves is the DSC.
     difficulty: boundary
 
@@ -263,7 +597,7 @@ scenarios:
     persona: fellow
     question: I can't reach my data on the institute server when I work from home.
     data_science: no
-    entity: it-services
+    team: it-services
     why: Remote access and VPN are handled by IT, not the Data Science Centre.
     difficulty: boundary
 
@@ -271,6 +605,6 @@ scenarios:
     persona: PI
     question: I want automatic backups set up for my project files.
     data_science: no
-    entity: it-services
+    team: it-services
     why: Backup infrastructure is IT. Planning long-term data preservation and sharing is the DSC's Data Management team.
     difficulty: boundary

@@ -3,23 +3,16 @@ import { z } from 'zod'
 /**
  * Schema + types for the single human-editable content file (public/content.yaml).
  *
- * This module is intentionally free of browser- or Node-specific imports so it
- * can be shared by both the runtime loader (src/content/loadContent.ts) and the
- * `npm run validate` CLI (scripts/validate-content.ts) — one source of truth.
+ * Free of browser/Node-specific imports so it is shared by the runtime loader
+ * (loadContent.ts), the `npm run validate` CLI and the `npm run catalog` builder.
  */
 
-// Personas are a small controlled vocabulary (each maps to a label + icon in
-// src/components/personas.ts). "fellow" groups predocs and postdocs, EMBL's
-// usual umbrella term for them.
+// Personas are a small controlled vocabulary (label + icon in components/personas.ts).
+// "fellow" groups predocs and postdocs, EMBL's usual umbrella term for them.
 export const PERSONAS = ['fellow', 'staff', 'PI', 'core-facility'] as const
 export const DIFFICULTIES = ['easy', 'boundary', 'hard'] as const
 
-/**
- * Editors write `data_science: yes` / `no` (the spec's authoring format). YAML's
- * JSON-compatible schema treats those as plain strings, so we accept yes/no/
- * true/false (case-insensitive) and coerce to a boolean, with a friendly error
- * for anything else.
- */
+/** Editors write yes/no; coerce to a boolean with a friendly error otherwise. */
 const dataScienceSchema = z.preprocess((v) => {
   if (typeof v === 'boolean') return v
   if (typeof v === 'string') {
@@ -30,27 +23,63 @@ const dataScienceSchema = z.preprocess((v) => {
   return v
 }, z.boolean({ invalid_type_error: 'must be yes or no', required_error: 'must be yes or no' }))
 
-const personSchema = z
-  .object({
-    name: z.string().min(1),
-    role: z.string().optional(),
-    email: z.string().email().optional(),
-  })
+export const pillarSchema = z
+  .object({ name: z.string().min(1), blurb: z.string().optional(), icon: z.string().optional() })
   .strict()
 
-export const entitySchema = z
+export const competencySchema = z.object({ label: z.string().min(1) }).strict()
+
+export const teamSchema = z
   .object({
     name: z.string().min(1),
     kind: z.enum(['dsc', 'external']),
     blurb: z.string().optional(),
-    image: z.string().optional(),
-    /** Optional lucide-react icon name, used to distinguish entities by icon. */
     icon: z.string().optional(),
-    /** External redirect link (typical for kind: external). */
+    pillars: z.array(z.string()).optional(),
     link: z.string().url().optional(),
     ticket: z.string().url().optional(),
     mattermost: z.string().url().optional(),
-    people: z.array(personSchema).optional(),
+  })
+  .strict()
+
+export const memberSchema = z
+  .object({
+    name: z.string().min(1),
+    position: z.string().optional(),
+    team: z.string().min(1),
+    competencies: z.array(z.string()).optional(),
+    /** Photo URL (e.g. content.embl.org). Optional — a fallback avatar is shown. */
+    photo: z.string().url().optional(),
+  })
+  .strict()
+
+export const platformSchema = z
+  .object({
+    name: z.string().min(1),
+    category: z.string().optional(),
+    blurb: z.string().optional(),
+    url: z.string().url().optional(),
+    pillars: z.array(z.string()).optional(),
+  })
+  .strict()
+
+export const trainingSchema = z
+  .object({
+    name: z.string().min(1),
+    blurb: z.string().optional(),
+    url: z.string().url().optional(),
+    pillars: z.array(z.string()).optional(),
+  })
+  .strict()
+
+export const serviceSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    blurb: z.string().optional(),
+    team: z.string().optional(),
+    /** Link may be an empty string until provided later. */
+    link: z.union([z.literal(''), z.string().url()]).optional(),
   })
   .strict()
 
@@ -59,10 +88,11 @@ export const scenarioSchema = z
     id: z.string().min(1),
     persona: z.enum(PERSONAS),
     question: z.string().min(1),
-    /** The correct answer: is this a Data Science Centre question? (yes / no) */
     data_science: dataScienceSchema,
-    /** Must reference a key under `entities:`; cross-checked in refineContent. */
-    entity: z.string().min(1),
+    /** Must reference a key under `teams:`; cross-checked in buildContent. */
+    team: z.string().min(1),
+    /** Competency tags used to surface matching people; must exist under `competencies:`. */
+    needs: z.array(z.string()).optional(),
     why: z.string().min(1),
     image: z.string().optional(),
     difficulty: z.enum(DIFFICULTIES).optional(),
@@ -71,24 +101,47 @@ export const scenarioSchema = z
 
 export const contentSchema = z
   .object({
-    entities: z.record(z.string(), entitySchema),
+    pillars: z.record(z.string(), pillarSchema).optional(),
+    competencies: z.record(z.string(), competencySchema).optional(),
+    teams: z.record(z.string(), teamSchema),
+    members: z.record(z.string(), memberSchema).optional(),
+    platforms: z.record(z.string(), platformSchema).optional(),
+    training: z.record(z.string(), trainingSchema).optional(),
+    services: z.array(serviceSchema).optional(),
     scenarios: z.array(scenarioSchema).min(1),
   })
   .strict()
 
-export type Person = z.infer<typeof personSchema>
-export type Entity = z.infer<typeof entitySchema>
+export type Pillar = z.infer<typeof pillarSchema>
+export type Competency = z.infer<typeof competencySchema>
+export type Team = z.infer<typeof teamSchema>
+export type Member = z.infer<typeof memberSchema>
+export type Platform = z.infer<typeof platformSchema>
+export type TrainingItem = z.infer<typeof trainingSchema>
+export type Service = z.infer<typeof serviceSchema>
 export type Scenario = z.infer<typeof scenarioSchema>
-export type RawContent = z.infer<typeof contentSchema>
 
-/** An entity definition with its lookup key attached. */
-export type EntityWithId = Entity & { id: string }
+export type TeamWithId = Team & { id: string }
+export type MemberWithId = Member & { id: string }
+export type PillarWithId = Pillar & { id: string }
+export type PlatformWithId = Platform & { id: string }
+export type TrainingWithId = TrainingItem & { id: string }
 
-/** A scenario with its `entity` reference resolved to the entity object. */
-export type ResolvedScenario = Scenario & { entityRef: EntityWithId }
+/** A scenario with its `team` resolved and the matching people computed. */
+export type ResolvedScenario = Scenario & {
+  teamRef: TeamWithId
+  /** People who can help (members of the team matching `needs`, or all team members). */
+  matchedMembers: MemberWithId[]
+}
 
 export interface Content {
-  entities: Record<string, Entity>
+  pillars: Record<string, Pillar>
+  competencies: Record<string, Competency>
+  teams: Record<string, Team>
+  members: MemberWithId[]
+  platforms: Record<string, Platform>
+  training: Record<string, TrainingItem>
+  services: Service[]
   scenarios: ResolvedScenario[]
 }
 
@@ -107,61 +160,94 @@ export class ContentError extends Error {
   }
 }
 
-/** Map a ZodError onto human-readable, scenario/entity-aware issues. */
+const RECORD_SECTIONS = new Set(['teams', 'members', 'platforms', 'training', 'pillars', 'competencies'])
+
+/** Map a ZodError onto human-readable, section/id-aware issues. */
 function zodIssues(error: z.ZodError, raw: unknown): ContentIssue[] {
   const scenarios = (raw as { scenarios?: unknown[] })?.scenarios
+  const services = (raw as { services?: unknown[] })?.services
   return error.issues.map((issue) => {
     const [head, ...rest] = issue.path
     let where = issue.path.length ? issue.path.join('.') : '(root)'
-    // Prefer naming a scenario by its `id` rather than its array index.
     if (head === 'scenarios' && typeof rest[0] === 'number' && Array.isArray(scenarios)) {
       const sc = scenarios[rest[0]] as { id?: string } | undefined
       const idLabel = sc?.id ? `"${sc.id}"` : `#${rest[0]}`
       const field = rest.slice(1).join('.')
       where = `scenario ${idLabel}${field ? ` → ${field}` : ''}`
-    } else if (head === 'entities' && typeof rest[0] === 'string') {
+    } else if (head === 'services' && typeof rest[0] === 'number' && Array.isArray(services)) {
+      const sv = services[rest[0]] as { id?: string } | undefined
+      const idLabel = sv?.id ? `"${sv.id}"` : `#${rest[0]}`
       const field = rest.slice(1).join('.')
-      where = `entity "${rest[0]}"${field ? ` → ${field}` : ''}`
+      where = `service ${idLabel}${field ? ` → ${field}` : ''}`
+    } else if (typeof head === 'string' && RECORD_SECTIONS.has(head) && typeof rest[0] === 'string') {
+      const singular = head.endsWith('s') ? head.slice(0, -1) : head
+      const field = rest.slice(1).join('.')
+      where = `${singular} "${rest[0]}"${field ? ` → ${field}` : ''}`
     }
     return { where, message: issue.message }
   })
 }
 
 /**
- * Parse + validate already-parsed YAML data into a typed, reference-resolved
- * Content object. Throws ContentError with friendly, located issues on any
- * problem (schema violation or a scenario pointing at an unknown entity).
+ * Parse + validate already-parsed YAML into a typed, reference-resolved Content
+ * object. Throws ContentError with friendly, located issues on any problem.
  */
 export function buildContent(data: unknown): Content {
   const parsed = contentSchema.safeParse(data)
-  if (!parsed.success) {
-    throw new ContentError(zodIssues(parsed.error, data))
+  if (!parsed.success) throw new ContentError(zodIssues(parsed.error, data))
+
+  const { teams, scenarios } = parsed.data
+  const pillars = parsed.data.pillars ?? {}
+  const competencies = parsed.data.competencies ?? {}
+  const membersRec = parsed.data.members ?? {}
+  const platforms = parsed.data.platforms ?? {}
+  const training = parsed.data.training ?? {}
+  const services = parsed.data.services ?? []
+
+  const issues: ContentIssue[] = []
+  const knownPillar = (p: string) => p in pillars
+  const knownCompetency = (c: string) => c in competencies
+
+  // Pillar references on teams / platforms / training.
+  for (const [id, t] of Object.entries(teams))
+    for (const p of t.pillars ?? []) if (!knownPillar(p)) issues.push({ where: `team "${id}" → pillars`, message: `unknown pillar "${p}".` })
+  for (const [id, p] of Object.entries(platforms))
+    for (const pl of p.pillars ?? []) if (!knownPillar(pl)) issues.push({ where: `platform "${id}" → pillars`, message: `unknown pillar "${pl}".` })
+  for (const [id, t] of Object.entries(training))
+    for (const pl of t.pillars ?? []) if (!knownPillar(pl)) issues.push({ where: `training "${id}" → pillars`, message: `unknown pillar "${pl}".` })
+
+  // Members: team must exist, competencies must be known.
+  for (const [id, m] of Object.entries(membersRec)) {
+    if (!teams[m.team]) issues.push({ where: `member "${id}" → team`, message: `references unknown team "${m.team}".` })
+    for (const c of m.competencies ?? []) if (!knownCompetency(c)) issues.push({ where: `member "${id}" → competencies`, message: `unknown competency "${c}".` })
   }
 
-  const { entities, scenarios } = parsed.data
+  // Services: team (if given) must exist.
+  for (const sv of services) if (sv.team && !teams[sv.team]) issues.push({ where: `service "${sv.id}" → team`, message: `references unknown team "${sv.team}".` })
 
-  // Cross-reference check: every scenario.entity must exist under entities.
-  const refIssues: ContentIssue[] = []
+  // Scenarios: team must exist, needs must be known competencies, ids unique.
   for (const sc of scenarios) {
-    if (!entities[sc.entity]) {
-      refIssues.push({
-        where: `scenario "${sc.id}" → entity`,
-        message: `references unknown entity "${sc.entity}". Add it under entities: or fix the reference.`,
-      })
-    }
+    if (!teams[sc.team]) issues.push({ where: `scenario "${sc.id}" → team`, message: `references unknown team "${sc.team}". Add it under teams: or fix the reference.` })
+    for (const c of sc.needs ?? []) if (!knownCompetency(c)) issues.push({ where: `scenario "${sc.id}" → needs`, message: `unknown competency "${c}".` })
   }
-  // Duplicate scenario ids would make recap/keys ambiguous.
   const seen = new Map<string, number>()
   for (const sc of scenarios) seen.set(sc.id, (seen.get(sc.id) ?? 0) + 1)
-  for (const [id, count] of seen) {
-    if (count > 1) refIssues.push({ where: `scenario "${id}"`, message: `duplicate id used ${count} times; ids must be unique.` })
-  }
-  if (refIssues.length) throw new ContentError(refIssues)
+  for (const [id, count] of seen) if (count > 1) issues.push({ where: `scenario "${id}"`, message: `duplicate id used ${count} times; ids must be unique.` })
 
-  const resolved: ResolvedScenario[] = scenarios.map((sc) => ({
-    ...sc,
-    entityRef: { id: sc.entity, ...entities[sc.entity] },
-  }))
+  if (issues.length) throw new ContentError(issues)
 
-  return { entities, scenarios: resolved }
+  const members: MemberWithId[] = Object.entries(membersRec).map(([id, m]) => ({ id, ...m }))
+
+  const resolved: ResolvedScenario[] = scenarios.map((sc) => {
+    const teamRef: TeamWithId = { id: sc.team, ...teams[sc.team] }
+    const teamMembers = members.filter((m) => m.team === sc.team)
+    const needs = sc.needs ?? []
+    const matchedMembers =
+      needs.length === 0
+        ? teamMembers
+        : teamMembers.filter((m) => (m.competencies ?? []).some((c) => needs.includes(c)))
+    return { ...sc, teamRef, matchedMembers }
+  })
+
+  return { pillars, competencies, teams, members, platforms, training, services, scenarios: resolved }
 }

@@ -39,8 +39,11 @@ try {
 
 try {
   const content = buildContent(data)
-  const entityCount = Object.keys(content.entities).length
-  console.log(`\n✓ content.yaml is valid — ${content.scenarios.length} scenario(s), ${entityCount} entity(ies).\n`)
+  const teamCount = Object.keys(content.teams).length
+  console.log(
+    `\n✓ content.yaml is valid — ${content.scenarios.length} scenario(s), ${teamCount} team(s), ` +
+      `${content.members.length} member(s), ${Object.keys(content.platforms).length} platform(s).\n`,
+  )
 } catch (err) {
   if (err instanceof ContentError) {
     fail(err.issues.map((i) => `${i.where}: ${i.message}`))
