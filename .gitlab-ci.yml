@@ -1,0 +1,43 @@
+# CI for DSC Concierge.
+#  • test:  validate content.yaml, run unit tests, ensure the app builds
+#  • pages: deploy the static build to GitLab Pages (self-hosted GitLab works too)
+#
+# The build uses a relative base ('./'), so it serves correctly from the
+# GitLab Pages project sub-path (e.g. https://<group>.pages.embl.org/dsc-concierge/).
+
+image: node:20-alpine
+
+stages:
+  - test
+  - deploy
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+test:
+  stage: test
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run validate
+    - npm test
+    - npm run build
+
+# GitLab Pages publishes whatever ends up in the `public/` artifact. Vite already
+# copies the source public/ (content.yaml, images) into dist during the build, so
+# we can safely replace the source public/ with the finished dist/ here in CI.
+pages:
+  stage: deploy
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run build
+    - rm -rf public
+    - mv dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
