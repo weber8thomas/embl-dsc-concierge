@@ -1,0 +1,127 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DSC Concierge content — edit this file to add or change questions.
+# No coding needed.
+#
+#   1) Define teams under `entities:`   2) Add questions under `scenarios:`
+#
+# To add a question for a team that already exists, copy a scenario block below,
+# change the text, and save. Refresh the app to see it — no rebuild needed.
+#
+# Images: drop files into /public/images/ and reference them by path, e.g.
+#   image: images/cells.jpg
+#
+# Tip: run `npm run validate` to check this file. It prints friendly errors that
+# name the exact scenario id and field if anything is missing or misspelled.
+# ─────────────────────────────────────────────────────────────────────────────
+
+entities:
+  image-analysis:
+    name: Bioimage Analysis
+    kind: dsc # dsc = part of the Data Science Centre | external = redirect elsewhere
+    blurb: We help extract quantitative data from microscopy and other images.
+    icon: microscope
+    people:
+      - name: Jane Doe
+        role: Image analyst
+        email: jane.doe@embl.org
+    ticket: https://tickets.embl.org/new?queue=image-analysis
+    mattermost: https://chat.embl.org/dsc/channels/image-analysis
+
+  bio-statistics:
+    name: Statistics & Data Analysis
+    kind: dsc
+    blurb: Experimental design, statistical testing, modelling and interpretation.
+    icon: sigma
+    people:
+      - name: Sam Mean
+        role: Biostatistician
+        email: sam.mean@embl.org
+    ticket: https://tickets.embl.org/new?queue=statistics
+    mattermost: https://chat.embl.org/dsc/channels/statistics
+
+  workflows:
+    name: Scientific Workflows & HPC
+    kind: dsc
+    blurb: Scaling pipelines on the cluster, reproducible workflows and compute.
+    icon: workflow
+    people:
+      - name: Alex Pipe
+        role: Workflow engineer
+        email: alex.pipe@embl.org
+    ticket: https://tickets.embl.org/new?queue=workflows
+    mattermost: https://chat.embl.org/dsc/channels/workflows
+
+  data-management:
+    name: Data Management
+    kind: dsc
+    blurb: Organising, documenting and sharing research data (FAIR, RDM plans).
+    icon: database
+    people:
+      - name: Robin Steward
+        role: Data steward
+        email: robin.steward@embl.org
+    ticket: https://tickets.embl.org/new?queue=data-management
+    mattermost: https://chat.embl.org/dsc/channels/data-management
+
+  it-services:
+    name: IT Services
+    kind: external
+    blurb: Hardware, accounts, network and general computing support.
+    icon: laptop
+    link: https://www.embl.org/it
+
+  communications:
+    name: Communications
+    kind: external
+    blurb: Posters, figures for outreach, press and visual identity.
+    icon: megaphone
+    link: https://www.embl.org/communications
+
+scenarios:
+  - id: cells
+    persona: postdoc
+    question: I have 10,000 microscopy images and need to count the cells in all of them.
+    data_science: yes
+    entity: image-analysis
+    why: Extracting numbers from images at scale is core bioimage-analysis work.
+    difficulty: easy
+
+  - id: which-test
+    persona: predoc
+    question: I ran an experiment with three conditions and don't know which statistical test to use.
+    data_science: yes
+    entity: bio-statistics
+    why: Choosing and interpreting statistical tests is exactly what the stats team helps with.
+    difficulty: easy
+
+  - id: cluster
+    persona: staff
+    question: My analysis takes days on my laptop — can I run it on the cluster instead?
+    data_science: yes
+    entity: workflows
+    why: Scaling pipelines onto HPC and making them reproducible is workflows-team territory.
+    difficulty: easy
+
+  - id: spreadsheet
+    persona: PI
+    question: My lab's data is scattered across messy spreadsheets and nobody can find anything.
+    data_science: yes
+    entity: data-management
+    why: Structuring, documenting and sharing research data is data-management work — a boundary case people often send to IT by mistake.
+    difficulty: boundary
+
+  - id: wifi
+    persona: staff
+    question: My laptop won't connect to the wifi.
+    data_science: no
+    entity: it-services
+    why: Hardware and network access is handled by IT Services, not the Data Science Centre.
+    difficulty: easy
+
+  - id: poster
+    persona: core-facility
+    question: I need a polished poster designed for a public open day.
+    data_science: no
+    entity: communications
+    why: Outreach design and visual identity is a Communications job, not data science.
+    difficulty: easy

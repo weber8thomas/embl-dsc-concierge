@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── EMBL design tokens ──────────────────────────────────────────────────────
+   Source: EMBL Corporate Design Guidelines (https://www.embl.org/guidelines/design/).
+   Green-led + white-led. Body text in darkest grey. Link blue for interactive
+   elements. Red is for alerts ONLY. No per-team colour coding. */
+:root {
+  /* Primary — greens (the brand) */
+  --embl-green: #18974c; /* PRIMARY */
+  --embl-green-darkest: #0a5032;
+  --embl-green-dark: #007b53;
+  --embl-green-light: #6cc24a;
+  --embl-green-lightest: #d0debb;
+
+  /* Neutral — greys + white (whitespace-led) */
+  --white: #ffffff;
+  --embl-grey: #707372;
+  --embl-grey-darkest: #373a36; /* body text */
+  --embl-grey-dark: #54585a;
+  --embl-grey-light: #a8a99e;
+  --embl-grey-lightest: #d0d0ce;
+
+  /* Interactive — links / navigating buttons */
+  --embl-link: #2a57a3;
+  --embl-link-hover: #193f90;
+  --embl-link-visited: #563d82;
+
+  /* Alerts ONLY */
+  --embl-red: #d41645;
+
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--white);
+  color: var(--embl-grey-darkest);
+  font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Visible keyboard focus everywhere (accessibility). */
+:where(a, button, [tabindex], input, select):focus-visible {
+  outline: 3px solid var(--embl-link);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respect reduced-motion: quiet all non-essential animation. Framer Motion is
+   also gated via useReducedMotion in components; this is the CSS backstop. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
