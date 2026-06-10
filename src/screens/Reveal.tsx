@@ -18,14 +18,14 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
   const isDS = scenario.data_science
 
   return (
-    <Shell onHome={onHome}>
-      <div className="flex flex-1 flex-col justify-center py-6">
+    <Shell onHome={onHome} width="wide">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center py-6">
         {/* Correct / not-quite beat — never colour alone: icon + text both carry it. */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-3"
           aria-live="polite"
         >
           {correct ? (
@@ -41,7 +41,7 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
           )}
         </motion.div>
 
-        <p className="mt-3 text-lg text-embl-grey-dark sm:text-xl">
+        <p className="mt-3 text-center text-lg text-embl-grey-dark sm:text-xl">
           This {isDS ? 'is' : 'is not'} a Data Science question — you answered <strong>{guess ? 'yes' : 'no'}</strong>.
         </p>
 
