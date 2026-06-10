@@ -106,30 +106,9 @@ entities:
   it-services:
     name: IT Services
     kind: external
-    blurb: Hardware, accounts, storage, network and general computing support.
+    blurb: Hardware, accounts, software licences, storage and network infrastructure.
     icon: laptop
     link: https://www.embl.org/it
-
-  communications:
-    name: Communications
-    kind: external
-    blurb: Posters, outreach materials, press and the visual identity.
-    icon: megaphone
-    link: https://www.embl.org/communications
-
-  human-resources:
-    name: Human Resources
-    kind: external
-    blurb: Contracts, visas, payroll and employment questions.
-    icon: building
-    link: https://www.embl.org/hr
-
-  facilities:
-    name: Facilities & Site
-    kind: external
-    blurb: Buildings, rooms, heating and physical infrastructure.
-    icon: wrench
-    link: https://www.embl.org/facilities
 
 scenarios:
   # ── Data Science questions (yes) ──────────────────────────────────────────
@@ -229,67 +208,69 @@ scenarios:
     why: Setting up version control and good software practice is research-software-engineering help.
     difficulty: boundary
 
-  # ── Not Data Science Centre questions (no) ────────────────────────────────
-  - id: wifi
-    persona: staff
-    question: My laptop won't connect to the wifi.
-    data_science: no
-    entity: it-services
-    why: Hardware and network access is handled by IT Services, not the Data Science Centre.
-    difficulty: easy
-
-  - id: poster
-    persona: core-facility
-    question: I need a polished poster designed for a public open day.
-    data_science: no
-    entity: communications
-    why: Designing outreach materials like posters is a Communications job, not data science.
-    difficulty: easy
-
-  - id: new-laptop
-    persona: fellow
-    question: I need a new laptop and some licensed software installed on it.
-    data_science: no
-    entity: it-services
-    why: Requesting hardware and installing licensed software is IT Services.
-    difficulty: easy
-
-  - id: visa
-    persona: fellow
-    question: I have a question about my contract and visa renewal.
-    data_science: no
-    entity: human-resources
-    why: Contracts, visas and employment questions are handled by Human Resources.
-    difficulty: easy
-
-  - id: storage-50tb
+  # ── Not the Data Science Centre (no) ──────────────────────────────────────
+  # These sound computational/data-ish, but the actual need is IT infrastructure,
+  # access or licences — the DSC↔IT boundary the booth is meant to clarify.
+  - id: gpu-server
     persona: PI
-    question: My lab generates 50 TB of imaging data a year — where can we actually store it?
+    question: I need a powerful GPU machine to train my deep-learning models.
     data_science: no
     entity: it-services
-    why: Provisioning raw storage and infrastructure is IT — though organising and sharing that data afterwards is the Data Science Centre. A classic boundary.
+    why: Buying and running GPU hardware is IT. Designing and training the model itself is the DSC's Machine Learning team — so come to us once the machine exists.
     difficulty: boundary
 
-  - id: press
-    persona: staff
-    question: A journalist wants to interview me about our latest paper.
+  - id: cluster-account
+    persona: fellow
+    question: I can't log in to the HPC cluster — my account isn't working.
     data_science: no
-    entity: communications
-    why: Media and press enquiries go through Communications.
+    entity: it-services
+    why: Accounts and access are managed by IT. How to actually run your analysis on the cluster is the DSC's Workflows team.
     difficulty: boundary
 
-  - id: broken-ac
+  - id: matlab-license
     persona: staff
-    question: The air conditioning in our office has been broken for a week.
+    question: I need a MATLAB licence installed so I can run an analysis script.
     data_science: no
-    entity: facilities
-    why: Building issues like heating and air conditioning are handled by Facilities.
-    difficulty: easy
+    entity: it-services
+    why: Software licences and installation are handled by IT — even when the software is for data analysis.
+    difficulty: boundary
 
-  - id: payslip
-    persona: staff
-    question: There's a mistake on my payslip this month.
+  - id: database-server
+    persona: PI
+    question: Can you set up a database server to hold my lab's data?
     data_science: no
-    entity: human-resources
-    why: Payroll and salary questions are handled by Human Resources.
-    difficulty: easy
+    entity: it-services
+    why: Hosting and maintaining a database server is IT infrastructure. Structuring the data and making it FAIR is the DSC's Data Management team.
+    difficulty: boundary
+
+  - id: shared-drive
+    persona: staff
+    question: Our shared network drive is full and I can't save my results.
+    data_science: no
+    entity: it-services
+    why: Storage capacity and network drives are IT. The DSC can later help you organise and archive what's on them.
+    difficulty: boundary
+
+  - id: jupyter-down
+    persona: fellow
+    question: The shared JupyterHub server keeps crashing.
+    data_science: no
+    entity: it-services
+    why: Keeping the server infrastructure running is IT. Help writing or fixing the notebooks themselves is the DSC.
+    difficulty: boundary
+
+  - id: remote-access
+    persona: fellow
+    question: I can't reach my data on the institute server when I work from home.
+    data_science: no
+    entity: it-services
+    why: Remote access and VPN are handled by IT, not the Data Science Centre.
+    difficulty: boundary
+
+  - id: backups
+    persona: PI
+    question: I want automatic backups set up for my project files.
+    data_science: no
+    entity: it-services
+    why: Backup infrastructure is IT. Planning long-term data preservation and sharing is the DSC's Data Management team.
+    difficulty: boundary

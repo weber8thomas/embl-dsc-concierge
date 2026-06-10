@@ -1,14 +1,13 @@
 /**
- * Reserved slot for the official EMBL logo.
+ * EMBL logo, top-left per the EMBL *digital* logo guideline, linking to embl.org,
+ * with clear space around it (header padding) and kept above the 30px min height.
  *
- * EMBL guidelines: on *digital* products the logo sits top-left, links to
- * www.embl.org, keeps clear space of at least the height of the "E" around it,
- * and the colour version is used on plain white. The real logo is protected and
- * needs Design-team sign-off, so this is a neutral placeholder — drop the
- * approved asset in /public and swap the markup here when available.
+ * The asset (public/embl-logo.svg) is the official EMBL logo fetched from
+ * embl.org. If your deployment needs a different/approved variant, replace that
+ * file — no code change needed.
  *
  * "One Institute" principle: EMBL is the parent brand shown first; the Data
- * Science Centre product name is secondary (it lives in the page content).
+ * Science Centre is the secondary product (see <DscLogo>).
  */
 export function Logo() {
   return (
@@ -16,14 +15,14 @@ export function Logo() {
       href="https://www.embl.org"
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-2.5 rounded-lg p-1 text-embl-grey-darkest"
-      aria-label="EMBL — placeholder logo (links to embl.org)"
+      className="inline-flex items-center rounded-lg p-1"
+      aria-label="EMBL — visit embl.org"
     >
-      {/* Placeholder mark: a roundel echoing the EMBL monochrome image mark. */}
-      <span className="grid h-9 w-9 place-items-center rounded-full bg-embl-green text-base font-bold text-white">
-        E
-      </span>
-      <span className="text-lg font-bold leading-none tracking-tight">EMBL</span>
+      <img
+        src={`${import.meta.env.BASE_URL}embl-logo.svg`}
+        alt="EMBL"
+        className="h-8 w-auto sm:h-9"
+      />
     </a>
   )
 }

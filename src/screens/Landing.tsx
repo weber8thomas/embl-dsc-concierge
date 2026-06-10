@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { Shell } from '../components/Shell'
-import { OrganicShape, Roundel } from '../components/OrganicShape'
+import { OrganicShape } from '../components/OrganicShape'
+import { DscLogo } from '../components/DscLogo'
 
 interface LandingProps {
   onStart: () => void
@@ -17,18 +18,16 @@ export function Landing({ onStart, onDirectory }: LandingProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="relative mb-8 grid place-items-center">
-          {/* Organic shape framing the roundel (signature EMBL pairing) */}
+        <div className="relative mb-6 grid place-items-center">
+          {/* Organic shape framing the DSC logo placeholder (signature EMBL pairing) */}
           <OrganicShape gradient="light-depth" blob={1} opacity={0.75} className="absolute h-44 w-44" />
-          <Roundel ring className="relative h-28 w-28 text-3xl font-bold tracking-tight">
-            DSC
-          </Roundel>
+          <DscLogo className="relative h-28 w-28 text-3xl" />
         </div>
 
-        <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-embl-green-dark">
+        <p className="mb-2 text-balance text-2xl font-bold tracking-tight text-embl-green-dark sm:text-3xl">
           EMBL Data Science Centre
         </p>
-        <h1 className="text-balance text-4xl font-bold tracking-tight text-embl-grey-darkest sm:text-5xl">
+        <h1 className="text-balance text-3xl font-semibold tracking-tight text-embl-grey-darkest sm:text-4xl">
           DSC Concierge
         </h1>
         <p className="mt-4 w-full max-w-md text-balance text-lg text-embl-grey-dark">
