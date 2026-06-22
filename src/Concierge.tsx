@@ -102,6 +102,7 @@ export function Concierge({ content }: { content: Content }) {
             score={game.score}
             total={game.total}
             bestStreak={game.bestStreak}
+            results={game.answers.map((a) => Boolean(a?.correct))}
             teams={game.matchedTeams}
             onPlayAgain={start}
             onDirectory={() => openDirectory('recap')}

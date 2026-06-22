@@ -187,10 +187,14 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
   const fgRef = useRef<ForceGraphMethods<RFNode, GLink> | undefined>(undefined)
   const didFit = useRef(false)
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastNodeClick = useRef(0)
   const [wrapRef, { width, height }] = useMeasure<HTMLDivElement>()
   const people = useMemo(() => buildPeople(content), [content])
   const photos = usePhotos(people)
   const [hover, setHover] = useState<string | null>(null)
+  // Tap/click selects a person and locks the focus on their connections — this
+  // is what makes the graph usable on touch, where there is no hover.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const groups = useMemo(() => buildGroups(content, people, groupBy), [content, people, groupBy])
   // Links exist in Competency mode only; Team mode is areas-only.
@@ -290,6 +294,11 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
     const fg = fgRef.current
     if (!fg) return
     const team = groupBy === 'team'
+    // Release pins from a previous layout so the new one can settle freely.
+    for (const p of people) {
+      p.fx = undefined
+      p.fy = undefined
+    }
     fg.d3Force('center', null)
     fg.d3Force('charge', forceManyBody<GNode>().strength(team ? -4 : -24) as never)
     fg.d3Force('x', forceX<GNode>((n) => targetOf(n).x).strength(team ? 0.9 : 0.45) as never)
@@ -300,20 +309,29 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
     link?.strength?.(0.04)
     didFit.current = false
     fg.d3ReheatSimulation()
-  }, [targetOf, groupBy])
+  }, [targetOf, groupBy, people])
 
-  // What lights up on hover: the node, its graph neighbours, and (in Team mode)
-  // its area-mates so the cluster reads as one.
+  // The focused person: a live hover wins, otherwise the tapped/selected one.
+  const focusId = hover ?? selectedId
+  const selectedPerson = selectedId ? peopleById.get(selectedId) ?? null : null
+
+  // Clear any selection when the grouping changes (the node may not exist there).
+  useEffect(() => {
+    setSelectedId(null)
+  }, [groupBy])
+
+  // What lights up for the focused person: the node, its graph neighbours, and
+  // (in Team mode) its area-mates so the cluster reads as one.
   const highlight = useMemo(() => {
-    if (!hover) return null
-    const set = new Set<string>([hover])
-    for (const n of adj.get(hover) ?? []) set.add(n)
+    if (!focusId) return null
+    const set = new Set<string>([focusId])
+    for (const n of adj.get(focusId) ?? []) set.add(n)
     if (groupBy === 'team') {
-      const p = peopleById.get(hover)
+      const p = peopleById.get(focusId)
       if (p) for (const other of people) if (other.team === p.team) set.add(other.id)
     }
     return set
-  }, [hover, adj, peopleById, people, groupBy])
+  }, [focusId, adj, peopleById, people, groupBy])
 
   const focusActive = (p: PNode) =>
     (!focusTeam || p.team === focusTeam) && (!focusCompetency || p.comps.includes(focusCompetency))
@@ -343,6 +361,7 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
           graphData={graphData}
           backgroundColor="rgba(0,0,0,0)"
           nodeId="id"
+          nodeLabel={() => ''}
           cooldownTicks={150}
           d3VelocityDecay={0.55}
           onEngineStop={() => {
@@ -352,25 +371,40 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
               fgRef.current?.zoomToFit(600, 40)
               didFit.current = true
             }
+            // Pin nodes at their settled spots. Clicking a node makes
+            // react-force-graph reheat the sim (it treats a click as a drag);
+            // pinning keeps the layout from drifting when that happens.
+            for (const p of people) {
+              p.fx = p.x
+              p.fy = p.y
+            }
           }}
           enableNodeDrag={true}
           linkColor={(l) => {
             // At rest: a calm, faint grey web so faces/clusters read first.
-            if (!hover) return 'rgba(112,115,114,0.10)'
-            // On hover: light ONLY the edges incident to the hovered person
+            if (!focusId) return 'rgba(112,115,114,0.10)'
+            // Focused: light ONLY the edges incident to the focused person
             // (its star — source→targets), not edges among its neighbours.
-            const inc = linkEnd(l.source) === hover || linkEnd(l.target) === hover
+            const inc = linkEnd(l.source) === focusId || linkEnd(l.target) === focusId
             return inc ? hexA(compColor.get(l.comp) ?? C.link, 0.75) : 'rgba(112,115,114,0.02)'
           }}
           linkWidth={(l) => {
-            if (!hover) return 0.45
-            const inc = linkEnd(l.source) === hover || linkEnd(l.target) === hover
+            if (!focusId) return 0.45
+            const inc = linkEnd(l.source) === focusId || linkEnd(l.target) === focusId
             return inc ? 1.5 + Math.min(l.count - 1, 2) * 0.5 : 0.35
           }}
           onNodeHover={(n) => onHover((n as RFNode) ?? null)}
           onNodeClick={(n) => {
             const node = n as RFNode
-            if (node.kind === 'person') onSelectMember?.(node.member)
+            if (node.kind !== 'person') return
+            lastNodeClick.current = Date.now()
+            setSelectedId(node.id)
+          }}
+          onBackgroundClick={() => {
+            // Ignore the background event that can accompany a node click; only a
+            // genuine empty-space click clears the selection.
+            if (Date.now() - lastNodeClick.current < 150) return
+            setSelectedId(null)
           }}
           onRenderFramePre={(ctx) => {
             const t = performance.now() / 1000
@@ -397,10 +431,74 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
           }}
           nodeCanvasObject={(node, ctx) => {
             const n = node as RFNode
-            drawFace(n, ctx, photos.current.get(n.id), personDimmed(n), n.id === hover)
+            drawFace(n, ctx, photos.current.get(n.id), personDimmed(n), n.id === focusId)
           }}
         />
       )}
+      {selectedPerson && (
+        <SelectedCard
+          member={selectedPerson.member}
+          competencies={content.competencies}
+          onClose={() => setSelectedId(null)}
+          onOpenProfile={() => onSelectMember?.(selectedPerson.member)}
+        />
+      )}
+    </div>
+  )
+}
+
+/** Compact card for the tapped person — the touch-friendly counterpart to hover. */
+function SelectedCard({
+  member,
+  competencies,
+  onClose,
+  onOpenProfile,
+}: {
+  member: MemberWithId
+  competencies: Content['competencies']
+  onClose: () => void
+  onOpenProfile: () => void
+}) {
+  const tags = member.competencies ?? []
+  return (
+    <div className="absolute right-3 top-3 z-10 w-60 rounded-xl bg-white/95 p-3 text-left shadow-md ring-1 ring-embl-grey-lightest backdrop-blur">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Clear selection"
+        className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full text-embl-grey transition-colors hover:bg-embl-grey-lightest hover:text-embl-grey-darkest"
+      >
+        ✕
+      </button>
+      <div className="flex items-center gap-2.5 pr-5">
+        {member.photo ? (
+          <img src={member.photo} alt="" loading="lazy" className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-embl-green-lightest" />
+        ) : (
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-embl-green-lightest text-sm font-bold text-embl-green-darkest ring-2 ring-embl-green-lightest">
+            {initials(member.name)}
+          </span>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-tight text-embl-grey-darkest">{member.name}</p>
+          {member.position && <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-embl-grey-dark">{member.position}</p>}
+        </div>
+      </div>
+      {tags.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-1">
+          {tags.map((t) => (
+            <li key={t} className="rounded-full bg-embl-green-lightest px-2 py-0.5 text-[11px] font-medium text-embl-green-darkest">
+              {competencies[t]?.label ?? t}
+            </li>
+          ))}
+        </ul>
+      )}
+      <button
+        type="button"
+        onClick={onOpenProfile}
+        className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+      >
+        View full profile →
+      </button>
     </div>
   )
 }

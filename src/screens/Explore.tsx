@@ -236,8 +236,8 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
               {groupBy === 'competency'
                 ? 'People are linked to everyone they share a competency with, and clustered by their main competency.'
                 : 'People are grouped into separate team areas.'}{' '}
-              Team leads are ringed in amber, chairs in blue. Hover a face to highlight its connections; click to open the
-              profile. Use the filters above to dim everything outside a team or competency.
+              Team leads are ringed in amber, chairs in blue. Hover or tap a face to focus its connections; tap again or
+              the background to clear. Use the filters above to dim everything outside a team or competency.
             </p>
             <div className="mt-3">
               <Suspense fallback={<GraphLoading />}>
