@@ -60,6 +60,7 @@ teams:
   # ── DSC service teams (scenarios route here) ──────────────────────────────
   internal-support:
     name: Data Science Internal Support
+    short: DaSIS
     kind: dsc
     blurb: Consulting, training, community and infrastructure support for EMBL researchers.
     icon: brain
@@ -89,7 +90,8 @@ teams:
     ticket: https://tickets.embl.org/new?queue=data-management # placeholder
 
   modis:
-    name: MODIS — Multimodal Open Data Integration Support
+    name: Multimodal Open Data Integration Support
+    short: MODIS
     kind: dsc
     blurb: Solutions and support for FAIR data management, integration and publication.
     icon: share
@@ -148,6 +150,7 @@ members:
     name: Lisanna Paladin
     position: Community and Internal Support Lead
     team: internal-support
+    lead: true
     competencies: [community, training, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60036724.jpg?itok=KkcLm7zQ
   sarah-kaspar:
@@ -204,6 +207,7 @@ members:
     name: Christian Tischer
     position: Team Leader
     team: bioimage-analysis
+    lead: true
     competencies: [image-analysis, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60005645.jpg?itok=96bzWDuh
   arif-ul-maula-khan:
@@ -234,6 +238,7 @@ members:
     name: Erick Martins Ratamero
     position: Data Management Coordinator
     team: data-management
+    lead: true
     competencies: [data-management, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100500.jpg?itok=PQgVMvmw
   tanuja-selvaraj:
@@ -259,6 +264,7 @@ members:
     name: Charles Girardot
     position: Head of Multimodal Open Data Integration Support
     team: modis
+    lead: true
     competencies: [data-integration, workflows, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60002771.jpg?itok=Zh7yV9sG
   matthias-monfort:
@@ -272,19 +278,31 @@ members:
     position: Senior Software Engineer
     team: modis
     competencies: [software, web]
+  laurent-thomas:
+    name: Laurent Thomas
+    position: Postdoctoral Fellow
+    team: modis
+    competencies: [data-integration, research]
+    orcid: 0000-0001-7686-3249
+    photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100234.jpg?itok=YcuvTUVB
+  marco-wetter:
+    name: Marco Wetter
+    position: Full Stack Developer
+    team: modis
+    competencies: [software, web, data-integration]
 
   # ── Fellows & Management ───────────────────────────────────────────────────
   thomas-weber:
     name: Thomas Weber
-    position: Research Fellow (ARISE)
-    team: fellows
-    competencies: [research]
+    position: Scientific Workflows Developer
+    team: data-management
+    competencies: [data-management, software, workflows, web]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60038718.jpg?itok=eQBkIfeV
   nina-habermann:
     name: Nina Habermann
     position: Operations Manager Data Science Centre
     team: management
-    competencies: [operations]
+    competencies: [operations, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60020866.jpg?itok=D2zPfuft
 
 platforms:

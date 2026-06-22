@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Compass, Play } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { OrganicShape } from '../components/OrganicShape'
-import { DscLogo } from '../components/DscLogo'
+import { ConciergeMark } from '../components/ConciergeMark'
 
 interface LandingProps {
   onStart: () => void
@@ -21,7 +21,7 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
       >
         <div className="relative mb-6 grid place-items-center">
           <OrganicShape gradient="light-depth" blob={1} opacity={0.75} className="absolute h-44 w-44" />
-          <DscLogo className="relative h-28 w-28 text-3xl" />
+          <ConciergeMark className="relative h-28 w-28 drop-shadow-sm" />
         </div>
 
         <p className="mb-2 text-balance text-2xl font-bold tracking-tight text-embl-green-dark sm:text-3xl">

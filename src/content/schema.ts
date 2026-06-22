@@ -32,6 +32,8 @@ export const competencySchema = z.object({ label: z.string().min(1) }).strict()
 export const teamSchema = z
   .object({
     name: z.string().min(1),
+    /** Optional short name / acronym (e.g. MODIS, DaSIS), shown as the heading. */
+    short: z.string().optional(),
     kind: z.enum(['dsc', 'external']),
     blurb: z.string().optional(),
     icon: z.string().optional(),
@@ -47,9 +49,13 @@ export const memberSchema = z
     name: z.string().min(1),
     position: z.string().optional(),
     team: z.string().min(1),
+    /** Marks this person as the lead of their team (shown with a badge). */
+    lead: z.boolean().optional(),
     competencies: z.array(z.string()).optional(),
     /** Photo URL (e.g. content.embl.org). Optional — a fallback avatar is shown. */
     photo: z.string().url().optional(),
+    /** ORCID iD (digits, e.g. 0000-0001-7686-3249). Shown as a link on the card. */
+    orcid: z.string().optional(),
   })
   .strict()
 
@@ -59,6 +65,8 @@ export const platformSchema = z
     category: z.string().optional(),
     blurb: z.string().optional(),
     url: z.string().url().optional(),
+    /** Optional logo image URL; a lettered placeholder is shown when absent. */
+    logo: z.string().url().optional(),
     pillars: z.array(z.string()).optional(),
   })
   .strict()
@@ -78,6 +86,8 @@ export const serviceSchema = z
     name: z.string().min(1),
     blurb: z.string().optional(),
     team: z.string().optional(),
+    /** Optional logo image URL; a lettered placeholder is shown when absent. */
+    logo: z.string().url().optional(),
     /** Link may be an empty string until provided later. */
     link: z.union([z.literal(''), z.string().url()]).optional(),
   })

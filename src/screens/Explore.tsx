@@ -1,13 +1,22 @@
-import { useState } from 'react'
-import { ArrowLeft, ExternalLink, Search } from 'lucide-react'
-import type { Content } from '../content/schema'
+import { lazy, Suspense, useState } from 'react'
+import { ArrowLeft, ExternalLink, Search, X } from 'lucide-react'
+import type { Content, MemberWithId } from '../content/schema'
 import { Shell } from '../components/Shell'
 import { ProfileCard } from '../components/ProfileCard'
 
+const NetworkGraph = lazy(() => import('../components/NetworkGraph'))
+type GroupBy = 'team' | 'competency'
+
 const ALL = '__all__'
-const TABS = ['people', 'platforms', 'training', 'services'] as const
+const TABS = ['people', 'network', 'platforms', 'training', 'services'] as const
 type Tab = (typeof TABS)[number]
-const TAB_LABEL: Record<Tab, string> = { people: 'People', platforms: 'Platforms', training: 'Training', services: 'Services' }
+const TAB_LABEL: Record<Tab, string> = {
+  people: 'People',
+  network: 'Network',
+  platforms: 'Platforms',
+  training: 'Training',
+  services: 'Services',
+}
 
 const SELECT_CLASS =
   'rounded-lg border border-embl-grey-lightest bg-white px-3 py-2 text-sm font-medium text-embl-grey-darkest focus-visible:outline-embl-link'
@@ -23,6 +32,40 @@ function PillarChips({ pillars, labels }: { pillars?: string[]; labels: Record<s
         </li>
       ))}
     </ul>
+  )
+}
+
+function logoInitials(name: string): string {
+  return name
+    .replace(/[^\p{L}\p{N} ]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join('')
+}
+
+/**
+ * Square brand mark for platform / service cards. Shows the supplied logo image
+ * when present, otherwise a consistent lettered placeholder in EMBL green so
+ * every card stays visually identifiable even before real logos are added.
+ */
+function CardLogo({ name, logo }: { name: string; logo?: string }) {
+  const [ok, setOk] = useState(Boolean(logo))
+  if (logo && ok) {
+    return (
+      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1 ring-1 ring-embl-grey-lightest">
+        <img src={logo} alt="" loading="lazy" onError={() => setOk(false)} className="h-full w-full object-contain" />
+      </span>
+    )
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-embl-green-lightest text-sm font-bold text-embl-green-darkest ring-1 ring-embl-green-light/40"
+    >
+      {logoInitials(name)}
+    </span>
   )
 }
 
@@ -49,6 +92,8 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
   const [query, setQuery] = useState('')
   const [team, setTeam] = useState<string>(ALL)
   const [competency, setCompetency] = useState<string>(ALL)
+  const [selected, setSelected] = useState<MemberWithId | null>(null)
+  const [groupBy, setGroupBy] = useState<GroupBy>('competency')
 
   const q = query.trim().toLowerCase()
   const pillarLabels = Object.fromEntries(Object.entries(content.pillars).map(([id, p]) => [id, p.name]))
@@ -104,19 +149,21 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <label className="relative flex-1 basis-56">
-            <span className="sr-only">Search</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-embl-grey" aria-hidden="true" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
-              className="w-full rounded-lg border border-embl-grey-lightest bg-white py-2 pl-9 pr-3 text-sm text-embl-grey-darkest focus-visible:outline-embl-link"
-            />
-          </label>
+          {tab !== 'network' && (
+            <label className="relative flex-1 basis-56">
+              <span className="sr-only">Search</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-embl-grey" aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search…"
+                className="w-full rounded-lg border border-embl-grey-lightest bg-white py-2 pl-9 pr-3 text-sm text-embl-grey-darkest focus-visible:outline-embl-link"
+              />
+            </label>
+          )}
 
-          {tab === 'people' && (
+          {(tab === 'people' || tab === 'network') && (
             <>
               <label className="flex items-center gap-2">
                 <span className="text-sm font-medium text-embl-grey-dark">Team</span>
@@ -165,13 +212,61 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
           </>
         )}
 
+        {tab === 'network' && (
+          <>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-embl-grey-dark">Group people by</span>
+              <div className="inline-flex rounded-full bg-embl-grey-lightest p-0.5" role="tablist" aria-label="Group people by">
+                {(['competency', 'team'] as const).map((g) => (
+                  <button
+                    key={g}
+                    role="tab"
+                    aria-selected={groupBy === g}
+                    onClick={() => setGroupBy(g)}
+                    className={`rounded-full px-4 py-1 text-sm font-semibold capitalize transition-colors ${
+                      groupBy === g ? 'bg-embl-green text-white' : 'text-embl-grey-dark hover:text-embl-grey-darkest'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-embl-grey">
+              {groupBy === 'competency'
+                ? 'People are linked to everyone they share a competency with, and clustered by their main competency.'
+                : 'People are grouped into separate team areas.'}{' '}
+              Team leads are ringed in amber, chairs in blue. Hover a face to highlight its connections; click to open the
+              profile. Use the filters above to dim everything outside a team or competency.
+            </p>
+            <div className="mt-3">
+              <Suspense fallback={<GraphLoading />}>
+                <NetworkGraph
+                  content={content}
+                  groupBy={groupBy}
+                  focusTeam={team === ALL ? null : team}
+                  focusCompetency={competency === ALL ? null : competency}
+                  onSelectMember={setSelected}
+                />
+              </Suspense>
+            </div>
+          </>
+        )}
+
         {tab === 'platforms' && (
           <ul className={`mt-5 ${GRID}`}>
             {platforms.map(([id, p]) => (
               <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
-                {p.category && <span className="text-xs font-semibold uppercase tracking-wide text-embl-grey">{p.category}</span>}
-                <h3 className="mt-1 font-semibold text-embl-grey-darkest">{p.name}</h3>
-                {p.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{p.blurb}</p>}
+                <div className="flex items-start gap-3">
+                  <CardLogo name={p.name} logo={p.logo} />
+                  <div className="min-w-0">
+                    {p.category && (
+                      <span className="text-xs font-semibold uppercase tracking-wide text-embl-grey">{p.category}</span>
+                    )}
+                    <h3 className="font-semibold text-embl-grey-darkest">{p.name}</h3>
+                  </div>
+                </div>
+                {p.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{p.blurb}</p>}
                 <PillarChips pillars={p.pillars} labels={pillarLabels} />
                 {p.url && <CardLink href={p.url} />}
               </li>
@@ -196,8 +291,11 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
           <ul className={`mt-5 ${GRID}`}>
             {services.map((s) => (
               <li key={s.id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
-                <h3 className="font-semibold text-embl-grey-darkest">{s.name}</h3>
-                {s.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{s.blurb}</p>}
+                <div className="flex items-start gap-3">
+                  <CardLogo name={s.name} logo={s.logo} />
+                  <h3 className="font-semibold text-embl-grey-darkest">{s.name}</h3>
+                </div>
+                {s.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{s.blurb}</p>}
                 {s.team && content.teams[s.team] && (
                   <p className="mt-2 text-xs font-medium text-embl-grey">{content.teams[s.team].name}</p>
                 )}
@@ -210,7 +308,36 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
           </ul>
         )}
       </div>
+
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-embl-grey-darkest/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelected(null)}
+        >
+          <div className="relative w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              aria-label="Close"
+              className="absolute -right-2 -top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white text-embl-grey-dark shadow-md ring-1 ring-embl-grey-lightest transition-colors hover:text-embl-grey-darkest"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <ProfileCard member={selected} competencies={content.competencies} />
+          </div>
+        </div>
+      )}
     </Shell>
+  )
+}
+
+function GraphLoading() {
+  return (
+    <div className="grid h-[68vh] min-h-[420px] w-full place-items-center rounded-2xl bg-embl-grey-lightest/30 ring-1 ring-embl-grey-lightest">
+      <p className="text-sm text-embl-grey-dark">Loading network…</p>
+    </div>
   )
 }
 

@@ -36,8 +36,24 @@ export function ProfileCard({ member, competencies, showCompetencies = true }: P
       )}
 
       <div className="min-w-0 sm:mt-3 sm:w-full">
+        {member.lead && (
+          <span className="mb-1 inline-flex items-center rounded-full bg-embl-green px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+            Team lead
+          </span>
+        )}
         <h3 className="font-semibold leading-tight text-embl-grey-darkest">{member.name}</h3>
         {member.position && <p className="mt-0.5 text-sm leading-snug text-embl-grey-dark">{member.position}</p>}
+        {member.orcid && (
+          <a
+            href={`https://orcid.org/${member.orcid}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-embl-link transition-colors hover:text-embl-link-hover sm:justify-center"
+          >
+            <span className="inline-block h-3 w-3 rounded-full bg-[#a6ce39] text-center text-[8px] font-bold leading-3 text-white" aria-hidden="true">iD</span>
+            {member.orcid}
+          </a>
+        )}
 
         {showCompetencies && tags.length > 0 && (
           <ul className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:justify-center">

@@ -14,11 +14,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
     "framer-motion": "^11.3.0",
     "js-yaml": "^4.1.0",
     "lucide-react": "^0.439.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-force-graph-2d": "^1.29.1",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
