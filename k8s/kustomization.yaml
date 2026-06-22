@@ -9,7 +9,7 @@ resources:
   - ingress.yaml
 
 images:
-  # Verify the registry domain (.de vs .org) against the build-image CI job's
-  # $CI_REGISTRY_IMAGE output. Bump newTag per release (or pin to $CI_COMMIT_SHORT_SHA).
-  - name: registry.git.embl.de/tweber/dsc-concierge
+  # Bump newTag per release (or pin to a commit SHA, e.g. the $CI_COMMIT_SHORT_SHA
+  # tag that CI pushes) instead of relying on :latest.
+  - name: registry.git.embl.org/tweber/dsc-concierge
     newTag: latest

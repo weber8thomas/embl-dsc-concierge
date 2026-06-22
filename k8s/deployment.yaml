@@ -37,9 +37,8 @@ spec:
                     app: dsc-concierge
       containers:
         - name: nginx
-          # Tag overridden by kustomize (images: newTag). Verify the registry domain
-          # (.de vs .org) against the build-image CI job's $CI_REGISTRY_IMAGE output.
-          image: registry.git.embl.de/tweber/dsc-concierge:latest
+          # Tag is overridden by kustomize (images: newTag).
+          image: registry.git.embl.org/tweber/dsc-concierge:latest
           ports:
             - containerPort: 80
               name: http

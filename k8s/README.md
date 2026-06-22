@@ -16,7 +16,7 @@ k8s/
 
 - **`kustomization.yaml`** → `namespace:` (EMBL convention `datasci-<project>`) and the
   image `name:` `<group>` path + `newTag`.
-- **`deployment.yaml`** → image `registry.git.embl.de/<group>/dsc-concierge` (kustomize
+- **`deployment.yaml`** → image `registry.git.embl.org/tweber/dsc-concierge` (kustomize
   overrides the tag).
 - **`ingress.yaml`** → host `dsc-concierge.embl.org` and `internal-users` (use
   `external-users` for public access).
@@ -35,7 +35,7 @@ pull secret. Create a **Deploy Token** (Settings → Repository → Deploy token
 
 ```bash
 kubectl -n <namespace> create secret docker-registry gitlab-registry \
-  --docker-server=registry.git.embl.de \
+  --docker-server=registry.git.embl.org \
   --docker-username=<deploy-token-username> \
   --docker-password=<deploy-token> \
   --docker-email=weber8thomas@embl.de
@@ -61,7 +61,7 @@ Verify from the EMBL network: `curl -I https://dsc-concierge.embl.org` → `200`
 the default branch) then roll the deployment:
 
 ```bash
-kubectl -n <namespace> set image deploy/dsc-concierge nginx=registry.git.embl.de/<group>/dsc-concierge:<new-sha>
+kubectl -n <namespace> set image deploy/dsc-concierge nginx=registry.git.embl.org/tweber/dsc-concierge:<new-sha>
 # or, if :latest was repushed:
 kubectl -n <namespace> rollout restart deploy/dsc-concierge
 ```
