@@ -355,13 +355,17 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
           }}
           enableNodeDrag={true}
           linkColor={(l) => {
-            const lit = !highlight || (highlight.has(linkEnd(l.source)) && highlight.has(linkEnd(l.target)))
-            const base = compColor.get(l.comp) ?? C.grey
-            return lit ? hexA(base, 0.45) : hexA(base, 0.06)
+            // At rest: a calm, faint grey web so faces/clusters read first.
+            if (!hover) return 'rgba(112,115,114,0.10)'
+            // On hover: light ONLY the edges incident to the hovered person
+            // (its star — source→targets), not edges among its neighbours.
+            const inc = linkEnd(l.source) === hover || linkEnd(l.target) === hover
+            return inc ? hexA(compColor.get(l.comp) ?? C.link, 0.75) : 'rgba(112,115,114,0.02)'
           }}
           linkWidth={(l) => {
-            const lit = highlight && highlight.has(linkEnd(l.source)) && highlight.has(linkEnd(l.target))
-            return (lit ? 1.6 : 0.6) + Math.min(l.count - 1, 2) * 0.5
+            if (!hover) return 0.45
+            const inc = linkEnd(l.source) === hover || linkEnd(l.target) === hover
+            return inc ? 1.5 + Math.min(l.count - 1, 2) * 0.5 : 0.35
           }}
           onNodeHover={(n) => onHover((n as RFNode) ?? null)}
           onNodeClick={(n) => {

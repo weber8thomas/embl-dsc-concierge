@@ -47,14 +47,14 @@ competencies:
   data-management: { label: Data management }
   workflows: { label: Scientific workflows }
   machine-learning: { label: Machine learning & AI }
-  software: { label: Research software }
-  web: { label: Web & dashboards }
+  software: { label: Software engineering }
+  web: { label: Web development }
   data-integration: { label: Data integration }
   training: { label: Training }
   community: { label: Community }
   leadership: { label: Leadership }
   operations: { label: Operations }
-  research: { label: Research }
+  infrastructure: { label: Infrastructure }
 
 teams:
   # ── DSC service teams (scenarios route here) ──────────────────────────────
@@ -163,19 +163,19 @@ members:
     name: Deborah Udoh
     position: Scientific Community Manager
     team: internal-support
-    competencies: [community]
+    competencies: [community, training]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60101075.jpg?itok=yAUlN6T3
   eva-maria-geissen:
     name: Eva-Maria Geissen
     position: Computational Biologist
     team: internal-support
-    competencies: [modeling, statistics]
+    competencies: [modeling, statistics, training]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60026366.jpg?itok=1L1JT6Zs
   felix-schneider:
     name: Felix Schneider
     position: Computational Biologist
     team: internal-support
-    competencies: [statistics, software]
+    competencies: [statistics, workflows, software, data-integration, training]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60041652.jpg?itok=uaBzvsJ3
   isabela-paredes-cisneros:
     name: Isabela Paredes-Cisneros
@@ -187,19 +187,19 @@ members:
     name: Jacobo Miranda
     position: Bioinformatics Training Officer
     team: internal-support
-    competencies: [training]
+    competencies: [training, machine-learning, community]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60044622.jpg?itok=lPLNMAY6
   renato-alves:
     name: Renato Alves
     position: Senior Bioinformatics Community Manager
     team: internal-support
-    competencies: [community, software, training]
+    competencies: [community, workflows, machine-learning, software, training, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60022244.jpg?itok=goRi_n6M
   yuhong-liu:
     name: Yuhong Liu
     position: Mathematical Modeling Specialist (Life Sciences)
     team: internal-support
-    competencies: [modeling]
+    competencies: [modeling, statistics, training, community]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100952.jpg?itok=hyp9yTxB
 
   # ── Bioimage Analysis Service Team ─────────────────────────────────────────
@@ -208,29 +208,29 @@ members:
     position: Team Leader
     team: bioimage-analysis
     lead: true
-    competencies: [image-analysis, leadership]
+    competencies: [image-analysis, data-management, workflows, training, community, leadership]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60005645.jpg?itok=96bzWDuh
   arif-ul-maula-khan:
     name: Arif Ul Maula Khan
     position: Bioimage Analyst
     team: bioimage-analysis
-    competencies: [image-analysis]
+    competencies: [image-analysis, workflows, machine-learning, software]
   yi-sun:
     name: Yi Sun
     position: Research Software Engineer
     team: bioimage-analysis
-    competencies: [software, image-analysis, machine-learning]
+    competencies: [software, image-analysis, workflows, machine-learning, infrastructure]
   jean-karim-heriche:
     name: Jean-Karim Hériché
     position: Computational Scientist – Bioimage Data Analysis and Management
     team: bioimage-analysis
-    competencies: [image-analysis, machine-learning, data-management, statistics]
+    competencies: [image-analysis, statistics, data-management, workflows, machine-learning, software, training, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60008447.jpg?itok=wYk7uKHO
   leila-abbaspour:
     name: Leila Abbaspour
     position: Research Software Engineer for Bioimage Analysis
     team: bioimage-analysis
-    competencies: [software, image-analysis]
+    competencies: [software, image-analysis, machine-learning]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100285.jpg?itok=bPkTsJtR
 
   # ── Data Management Team ───────────────────────────────────────────────────
@@ -239,25 +239,25 @@ members:
     position: Data Management Coordinator
     team: data-management
     lead: true
-    competencies: [data-management, leadership]
+    competencies: [data-management, image-analysis, workflows, machine-learning, software, data-integration, training, community, leadership, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100500.jpg?itok=PQgVMvmw
   tanuja-selvaraj:
     name: Tanuja Selvaraj
     position: Data Platform Developer
     team: data-management
-    competencies: [data-management, software]
+    competencies: [data-management, workflows, software, data-integration]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60044184.jpg?itok=NaMbcwuX
   francesco-tabaro:
     name: Francesco Tabaro
     position: Genomics Data Platform Developer
     team: data-management
-    competencies: [data-management, software]
+    competencies: [data-management, workflows, machine-learning, software, web, data-integration, training, community, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60034623.jpg?itok=v-f-IreS
   nora-vivanco-gonzalez:
     name: Nora Vivanco Gonzalez
     position: Data Scientist for Imaging and Omics
     team: data-management
-    competencies: [data-management, image-analysis, statistics]
+    competencies: [data-management, image-analysis, statistics, workflows, data-integration]
 
   # ── MODIS ──────────────────────────────────────────────────────────────────
   charles-girardot:
@@ -265,38 +265,38 @@ members:
     position: Head of Multimodal Open Data Integration Support
     team: modis
     lead: true
-    competencies: [data-integration, workflows, leadership]
+    competencies: [data-integration, data-management, workflows, leadership, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60002771.jpg?itok=Zh7yV9sG
   matthias-monfort:
     name: Matthias Monfort
     position: Web Developer / Workflow Management
     team: modis
-    competencies: [workflows, software, web]
+    competencies: [workflows, data-management, software, web, data-integration, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60018989.jpg?itok=bK7v9CaG
   nayeem-reza:
     name: Nayeem Reza
     position: Senior Software Engineer
     team: modis
-    competencies: [software, web]
+    competencies: [software, data-management, web, data-integration, infrastructure]
   laurent-thomas:
     name: Laurent Thomas
     position: Postdoctoral Fellow
     team: modis
-    competencies: [data-integration, research]
+    competencies: [data-integration, data-management, workflows, software, community, infrastructure]
     orcid: 0000-0001-7686-3249
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60100234.jpg?itok=YcuvTUVB
   marco-wetter:
     name: Marco Wetter
     position: Full Stack Developer
     team: modis
-    competencies: [software, web, data-integration]
+    competencies: [software, data-management, web, data-integration, infrastructure]
 
   # ── Fellows & Management ───────────────────────────────────────────────────
   thomas-weber:
     name: Thomas Weber
     position: Scientific Workflows Developer
     team: data-management
-    competencies: [data-management, software, workflows, web]
+    competencies: [data-management, workflows, software, web, community, infrastructure]
     photo: https://content.embl.org/sites/default/files/styles/medium/public/persons/CP-60038718.jpg?itok=eQBkIfeV
   nina-habermann:
     name: Nina Habermann
