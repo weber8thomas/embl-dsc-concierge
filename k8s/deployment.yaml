@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsc-concierge
+  labels:
+    app: dsc-concierge
+spec:
+  # Static nginx site: replicas buy availability + zero-downtime rollouts, not throughput.
+  # 3 survives a node drain / rolling update and gives burst headroom for Lab Day.
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: dsc-concierge
+  template:
+    metadata:
+      labels:
+        app: dsc-concierge
+    spec:
+      # Needed only if the GitLab project/registry is private (the EMBL default).
+      # Delete this block if the project is public. See k8s/README.md.
+      imagePullSecrets:
+        - name: gitlab-registry
+      affinity:
+        # Spread replicas across nodes so a single node failure can't take everything down.
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: dsc-concierge
+      containers:
+        - name: nginx
+          # Tag overridden by kustomize (images: newTag). Verify the registry domain
+          # (.de vs .org) against the build-image CI job's $CI_REGISTRY_IMAGE output.
+          image: registry.git.embl.de/tweber/dsc-concierge:latest
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          # A GET / returns index.html (200) — that's a fine health signal for a static site.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false

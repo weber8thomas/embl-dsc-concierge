@@ -1,6 +1,7 @@
 # CI for DSC Concierge.
-#  • test:  validate content.yaml, run unit tests, ensure the app builds
-#  • pages: deploy the static build to GitLab Pages (self-hosted GitLab works too)
+#  • test:   validate content.yaml, run unit tests, ensure the app builds
+#  • build:  build the container image and push it to the EMBL GitLab registry
+#  • pages:  deploy the static build to GitLab Pages (self-hosted GitLab works too)
 #
 # The build uses a relative base ('./'), so it serves correctly from the
 # GitLab Pages project sub-path (e.g. https://<group>.pages.embl.org/dsc-concierge/).
@@ -9,6 +10,7 @@ image: node:20-alpine
 
 stages:
   - test
+  - build
   - deploy
 
 cache:
@@ -25,6 +27,27 @@ test:
     - npm run validate
     - npm test
     - npm run build
+
+# Build the container image (root Dockerfile → nginx:1.27-alpine serving dist/) and push it
+# to this project's registry with Kaniko. No Docker-in-Docker, no manual credentials:
+# GitLab injects $CI_REGISTRY*, and $CI_REGISTRY_IMAGE resolves to
+# registry.git.embl.de/<group>/dsc-concierge automatically. Use that value in k8s/.
+build-image:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf '%s:%s' "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "$CI_PROJECT_DIR"
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+      --destination "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+      --destination "$CI_REGISTRY_IMAGE:latest"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # GitLab Pages publishes whatever ends up in the `public/` artifact. Vite already
 # copies the source public/ (content.yaml, images) into dist during the build, so

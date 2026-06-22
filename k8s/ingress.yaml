@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dsc-concierge
+  labels:
+    app: dsc-concierge
+  annotations:
+    # EMBL Traefik issues a Sectigo certificate for the host below.
+    traefik.ingress.kubernetes.io/router.tls.certresolver: sectigo
+spec:
+  # internal-users = reachable from the EMBL network / VPN / wifi only.
+  # Switch to external-users to expose it on the public internet.
+  ingressClassName: internal-users
+  tls:
+    - hosts:
+        - dsc-concierge.embl.de
+      secretName: dsc-concierge-tls
+  rules:
+    - host: dsc-concierge.embl.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dsc-concierge
+                port:
+                  name: http
