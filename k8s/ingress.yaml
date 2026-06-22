@@ -13,10 +13,10 @@ spec:
   ingressClassName: internal-users
   tls:
     - hosts:
-        - dsc-concierge.embl.de
+        - dsc-concierge.embl.org
       secretName: dsc-concierge-tls
   rules:
-    - host: dsc-concierge.embl.de
+    - host: dsc-concierge.embl.org
       http:
         paths:
           - path: /

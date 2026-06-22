@@ -8,7 +8,7 @@ the image at build time.
 k8s/
   deployment.yaml     # 3 nginx replicas, anti-affinity, rolling update (maxUnavailable 0)
   service.yaml        # ClusterIP :80
-  ingress.yaml        # Traefik internal-users + Sectigo TLS, host dsc-concierge.embl.de
+  ingress.yaml        # Traefik internal-users + Sectigo TLS, host dsc-concierge.embl.org
   kustomization.yaml  # namespace + image tag
 ```
 
@@ -18,7 +18,7 @@ k8s/
   image `name:` `<group>` path + `newTag`.
 - **`deployment.yaml`** → image `registry.git.embl.de/<group>/dsc-concierge` (kustomize
   overrides the tag).
-- **`ingress.yaml`** → host `dsc-concierge.embl.de` and `internal-users` (use
+- **`ingress.yaml`** → host `dsc-concierge.embl.org` and `internal-users` (use
   `external-users` for public access).
 
 ## Image build
@@ -53,7 +53,7 @@ kubectl apply -k k8s/                        # deploy
 kubectl -n <namespace> rollout status deploy/dsc-concierge   # wait for 3/3 Ready
 ```
 
-Verify from the EMBL network: `curl -I https://dsc-concierge.embl.de` → `200`, valid TLS.
+Verify from the EMBL network: `curl -I https://dsc-concierge.embl.org` → `200`, valid TLS.
 
 ## Updating content
 
