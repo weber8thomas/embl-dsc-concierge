@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Compass, Play } from 'lucide-react'
+import { ArrowRight, BookOpen, Compass, Play } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { OrganicShape } from '../components/OrganicShape'
 import { ConciergeMark } from '../components/ConciergeMark'
@@ -20,8 +20,8 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
         transition={{ duration: 0.4 }}
       >
         <div className="relative mb-6 grid place-items-center">
-          <OrganicShape gradient="light-depth" blob={1} opacity={0.75} className="absolute h-44 w-44" />
-          <ConciergeMark className="relative h-28 w-28 drop-shadow-sm" />
+          <OrganicShape gradient="light-depth" blob={1} opacity={0.75} className="absolute h-56 w-56" />
+          <ConciergeMark className="relative h-36 w-36 drop-shadow-sm" />
         </div>
 
         <p className="mb-2 text-balance text-2xl font-bold tracking-tight text-embl-green-dark sm:text-3xl">
@@ -32,14 +32,14 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
         </h1>
 
         {/* The two clearly separated parts of the app. */}
-        <div className="mt-10 grid w-full max-w-3xl gap-4 text-left sm:grid-cols-2">
+        <div className="mt-10 grid w-full max-w-3xl gap-4 text-center sm:grid-cols-2">
           {/* Part 1 — the game */}
           <section className="flex flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-embl-grey-lightest">
-            <span className="grid h-12 w-12 place-items-center rounded-roundel bg-embl-green text-white">
-              <Play className="h-6 w-6" aria-hidden="true" />
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-roundel bg-embl-green text-white">
+              <Play className="h-8 w-8" aria-hidden="true" />
             </span>
             <h2 className="mt-4 text-xl font-bold text-embl-grey-darkest">Play the triage game</h2>
-            <p className="mt-1 flex-1 text-sm text-embl-grey-dark">
+            <p className="mt-1 min-h-[2.75rem] text-sm text-embl-grey-dark">
               Is it a question for the Data Science Centre? Swipe to guess, then see who to ask.
             </p>
             <div className="mt-5 flex flex-col gap-2">
@@ -54,8 +54,9 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
               <button
                 type="button"
                 onClick={onDirectory}
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-embl-grey-lightest bg-white px-4 py-2.5 text-sm font-semibold text-embl-grey-dark transition-colors hover:border-embl-green hover:text-embl-green-dark"
               >
+                <BookOpen className="h-4 w-4" aria-hidden="true" />
                 Browse scenarios
               </button>
             </div>
@@ -63,11 +64,11 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
 
           {/* Part 2 — the DSC catalogue */}
           <section className="flex flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-embl-grey-lightest">
-            <span className="grid h-12 w-12 place-items-center rounded-roundel bg-embl-green-dark text-white">
-              <Compass className="h-6 w-6" aria-hidden="true" />
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-roundel bg-embl-green-dark text-white">
+              <Compass className="h-8 w-8" aria-hidden="true" />
             </span>
             <h2 className="mt-4 text-xl font-bold text-embl-grey-darkest">Explore the DSC</h2>
-            <p className="mt-1 flex-1 text-sm text-embl-grey-dark">
+            <p className="mt-1 min-h-[2.75rem] text-sm text-embl-grey-dark">
               The people, platforms, training and services of the Data Science Centre.
             </p>
             <div className="mt-5">

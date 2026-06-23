@@ -12,4 +12,4 @@ images:
   # Bump newTag per release (or pin to a commit SHA, e.g. the $CI_COMMIT_SHORT_SHA
   # tag that CI pushes) instead of relying on :latest.
   - name: registry.git.embl.org/tweber/dsc-concierge
-    newTag: latest
+    newTag: v1.1.0

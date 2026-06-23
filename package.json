@@ -1,7 +1,7 @@
 {
   "name": "dsc-concierge",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "DSC Concierge — a swipe-based triage game and self-service router for the EMBL Data Science Centre.",
   "scripts": {

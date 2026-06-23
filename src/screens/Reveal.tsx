@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, CircleCheck, CircleX } from 'lucide-react'
+import { ArrowRight, CircleCheck, CircleX, Handshake } from 'lucide-react'
 import type { Answer } from '../game/useGame'
 import type { Competency } from '../content/schema'
 import { Shell } from '../components/Shell'
@@ -15,7 +15,8 @@ interface RevealProps {
 
 export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealProps) {
   const { scenario, guess, correct } = answer
-  const isDS = scenario.data_science
+  const isShared = scenario.data_science === 'shared'
+  const isDS = scenario.data_science === true
 
   return (
     <Shell onHome={onHome} width="wide">
@@ -28,7 +29,12 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
           className="flex items-center justify-center gap-3"
           aria-live="polite"
         >
-          {correct ? (
+          {isShared ? (
+            <span className="inline-flex items-center gap-3 text-embl-link">
+              <Handshake className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
+              <span className="text-4xl font-bold tracking-tight sm:text-5xl">It’s a bit of both! 🤝</span>
+            </span>
+          ) : correct ? (
             <span className="inline-flex items-center gap-3 text-embl-green-dark">
               <CircleCheck className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
               <span className="text-4xl font-bold tracking-tight sm:text-5xl">Correct!</span>
@@ -42,7 +48,11 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
         </motion.div>
 
         <p className="mt-3 text-center text-lg text-embl-grey-dark sm:text-xl">
-          This {isDS ? 'is' : 'is not'} a Data Science question — you answered <strong>{guess ? 'yes' : 'no'}</strong>.
+          {isShared ? (
+            <>This one’s shared — the DSC and another team each own a piece, so <strong>{guess ? 'yes' : 'no'}</strong> both work.</>
+          ) : (
+            <>This {isDS ? 'is' : 'is not'} a Data Science question — you answered <strong>{guess ? 'yes' : 'no'}</strong>.</>
+          )}
         </p>
 
         <motion.div

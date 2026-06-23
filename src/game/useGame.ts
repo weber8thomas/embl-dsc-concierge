@@ -56,7 +56,8 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
       setAnswers((prev) => {
         if (prev[index]) return prev // ignore double-answers for the same card
         const sc = deck[index]
-        const correct = guess === sc.data_science
+        // `shared` scenarios are owned by both sides, so either swipe is correct.
+        const correct = sc.data_science === 'shared' || guess === sc.data_science
         setStreak((s) => {
           const nextStreak = correct ? s + 1 : 0
           setBestStreak((b) => Math.max(b, nextStreak))
@@ -86,7 +87,10 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
   const matchedTeams = useMemo(() => {
     const byId = new Map<string, TeamWithId>()
     for (const a of answers) {
-      if (a) byId.set(a.scenario.teamRef.id, a.scenario.teamRef)
+      if (!a) continue
+      byId.set(a.scenario.teamRef.id, a.scenario.teamRef)
+      // Shared scenarios route to two teams — list both in the recap shortlist.
+      if (a.scenario.teamRefAlso) byId.set(a.scenario.teamRefAlso.id, a.scenario.teamRefAlso)
     }
     return [...byId.values()]
   }, [answers])

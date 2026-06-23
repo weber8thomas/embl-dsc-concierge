@@ -12,6 +12,13 @@ const ALL = '__all__'
 const SELECT_CLASS =
   'rounded-lg border border-embl-grey-lightest bg-white px-3 py-2 text-sm font-medium text-embl-grey-darkest focus-visible:outline-embl-link'
 
+/** The three verdict buckets the directory groups scenarios into, in display order. */
+const GROUPS: { key: string; label: string; match: (sc: ResolvedScenario) => boolean }[] = [
+  { key: 'ds', label: 'Data Science Centre', match: (sc) => sc.data_science === true },
+  { key: 'shared', label: 'Shared', match: (sc) => sc.data_science === 'shared' },
+  { key: 'no', label: 'Not the DSC', match: (sc) => sc.data_science === false },
+]
+
 /**
  * Part of the *game*: a no-timer, filterable browse of the scenarios. Each card
  * opens the same "where do I go" result the game shows (team + people who can
@@ -95,33 +102,44 @@ export function Directory({ content, onBack }: { content: Content; onBack: () =>
           {results.length} {results.length === 1 ? 'scenario' : 'scenarios'}
         </p>
 
-        <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((sc) => (
-            <li key={sc.id}>
-              <button
-                type="button"
-                onClick={() => setSelected(sc)}
-                className="flex h-full w-full flex-col rounded-2xl bg-white p-5 text-left shadow-sm ring-1 ring-embl-grey-lightest transition hover:shadow-md hover:ring-embl-green focus-visible:outline-embl-link"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <PersonaBadge persona={sc.persona} />
-                  <span className="text-xs font-semibold uppercase tracking-wide text-embl-grey">
-                    {sc.data_science ? 'Data Science' : 'Not DSC'}
-                  </span>
-                </div>
-                <p className="mt-3 font-medium text-embl-grey-darkest">{sc.question}</p>
-                <div className="mt-auto flex items-center gap-2 pt-4 text-sm font-semibold text-embl-link">
-                  <TeamIcon icon={sc.teamRef.icon} sizeClass="h-7 w-7" iconClass="h-4 w-4" />
-                  <span className="min-w-0 flex-1 truncate text-embl-grey-darkest">{sc.teamRef.name}</span>
-                  <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {results.length === 0 && (
+        {results.length === 0 ? (
           <p className="mt-10 text-center text-embl-grey-dark">No scenarios match those filters. Try widening them.</p>
+        ) : (
+          <div className="mt-4 space-y-8">
+            {GROUPS.map((g) => {
+              const items = results.filter(g.match)
+              if (items.length === 0) return null
+              return (
+                <section key={g.key}>
+                  <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-embl-grey">
+                    {g.label}
+                    <span className="rounded-full bg-embl-grey-lightest px-2 py-0.5 text-xs font-semibold text-embl-grey-dark">
+                      {items.length}
+                    </span>
+                  </h2>
+                  <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((sc) => (
+                      <li key={sc.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelected(sc)}
+                          className="flex h-full w-full flex-col rounded-2xl bg-white p-5 text-left shadow-sm ring-1 ring-embl-grey-lightest transition hover:shadow-md hover:ring-embl-green focus-visible:outline-embl-link"
+                        >
+                          <PersonaBadge persona={sc.persona} />
+                          <p className="mt-3 font-medium text-embl-grey-darkest">{sc.question}</p>
+                          <div className="mt-auto flex items-center gap-2 pt-4 text-sm font-semibold text-embl-link">
+                            <TeamIcon icon={sc.teamRef.icon} sizeClass="h-7 w-7" iconClass="h-4 w-4" />
+                            <span className="min-w-0 flex-1 truncate text-embl-grey-darkest">{sc.teamRef.name}</span>
+                            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
         )}
       </div>
 

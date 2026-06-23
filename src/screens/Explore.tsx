@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
-import { ArrowLeft, ExternalLink, Search, X } from 'lucide-react'
-import type { Content, MemberWithId } from '../content/schema'
+import { ArrowLeft, ExternalLink, MessageSquare, Search } from 'lucide-react'
+import type { Content } from '../content/schema'
 import { Shell } from '../components/Shell'
 import { ProfileCard } from '../components/ProfileCard'
 
@@ -8,7 +8,7 @@ const NetworkGraph = lazy(() => import('../components/NetworkGraph'))
 type GroupBy = 'team' | 'competency'
 
 const ALL = '__all__'
-const TABS = ['people', 'network', 'platforms', 'training', 'services'] as const
+const TABS = ['people', 'network', 'platforms', 'training', 'services', 'channels'] as const
 type Tab = (typeof TABS)[number]
 const TAB_LABEL: Record<Tab, string> = {
   people: 'People',
@@ -16,11 +16,14 @@ const TAB_LABEL: Record<Tab, string> = {
   platforms: 'Platforms',
   training: 'Training',
   services: 'Services',
+  channels: 'Channels',
 }
 
 const SELECT_CLASS =
   'rounded-lg border border-embl-grey-lightest bg-white px-3 py-2 text-sm font-medium text-embl-grey-darkest focus-visible:outline-embl-link'
 const GRID = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'
+/** Team ids shown first in the People tab (leadership before service teams). */
+const TEAM_PRIORITY = ['chairs', 'management']
 
 function PillarChips({ pillars, labels }: { pillars?: string[]; labels: Record<string, string> }) {
   if (!pillars || pillars.length === 0) return null
@@ -92,7 +95,6 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
   const [query, setQuery] = useState('')
   const [team, setTeam] = useState<string>(ALL)
   const [competency, setCompetency] = useState<string>(ALL)
-  const [selected, setSelected] = useState<MemberWithId | null>(null)
   const [groupBy, setGroupBy] = useState<GroupBy>('competency')
 
   const q = query.trim().toLowerCase()
@@ -104,15 +106,24 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
     if (q && !`${m.name} ${m.position ?? ''}`.toLowerCase().includes(q)) return false
     return true
   })
+  // Leadership groups float to the top; everything else keeps content.yaml order.
+  const teamRank = (id: string) => {
+    const i = TEAM_PRIORITY.indexOf(id)
+    return i === -1 ? TEAM_PRIORITY.length : i
+  }
   const peopleByTeam = Object.keys(content.teams)
     .map((id) => ({ id, team: content.teams[id], members: members.filter((m) => m.team === id) }))
     .filter((g) => g.members.length > 0)
+    .sort((a, b) => teamRank(a.id) - teamRank(b.id))
 
   const platforms = Object.entries(content.platforms).filter(
     ([, p]) => !q || `${p.name} ${p.blurb ?? ''} ${p.category ?? ''}`.toLowerCase().includes(q),
   )
   const training = Object.entries(content.training).filter(([, t]) => !q || `${t.name} ${t.blurb ?? ''}`.toLowerCase().includes(q))
   const services = content.services.filter((s) => !q || `${s.name} ${s.blurb ?? ''}`.toLowerCase().includes(q))
+  const channels = Object.entries(content.channels).filter(
+    ([, c]) => !q || `${c.name} ${c.blurb ?? ''}`.toLowerCase().includes(q),
+  )
 
   return (
     <Shell
@@ -246,7 +257,6 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
                   groupBy={groupBy}
                   focusTeam={team === ALL ? null : team}
                   focusCompetency={competency === ALL ? null : competency}
-                  onSelectMember={setSelected}
                 />
               </Suspense>
             </div>
@@ -307,28 +317,28 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
             {services.length === 0 && <Empty />}
           </ul>
         )}
-      </div>
 
-      {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-embl-grey-darkest/40 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setSelected(null)}
-        >
-          <div className="relative w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setSelected(null)}
-              aria-label="Close"
-              className="absolute -right-2 -top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white text-embl-grey-dark shadow-md ring-1 ring-embl-grey-lightest transition-colors hover:text-embl-grey-darkest"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
-            <ProfileCard member={selected} competencies={content.competencies} />
-          </div>
-        </div>
-      )}
+        {tab === 'channels' && (
+          <ul className={`mt-5 ${GRID}`}>
+            {channels.map(([id, c]) => (
+              <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
+                <h3 className="font-semibold text-embl-grey-darkest">{c.name}</h3>
+                {c.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{c.blurb}</p>}
+                <a
+                  href={c.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+                >
+                  <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                  Join the channel
+                </a>
+              </li>
+            ))}
+            {channels.length === 0 && <Empty />}
+          </ul>
+        )}
+      </div>
     </Shell>
   )
 }

@@ -39,6 +39,33 @@ const withMembers = `${valid}members:
     competencies: [image-analysis]
 `
 
+// A `shared` scenario: an external lead (it-services) plus a DSC partner.
+const sharedDoc = `
+competencies:
+  data-management: { label: Data management }
+teams:
+  data-management:
+    name: Data Management
+    kind: dsc
+  it-services:
+    name: IT Services
+    kind: external
+members:
+  dee:
+    name: Dee Manager
+    team: data-management
+    competencies: [data-management]
+scenarios:
+  - id: db-server
+    persona: PI
+    question: Can you set up a database server?
+    data_science: shared
+    team: it-services
+    team_also: data-management
+    needs: [data-management]
+    why: IT hosts the server; the DSC designs the FAIR schema.
+`
+
 describe('buildContent', () => {
   it('accepts a minimal valid document and resolves the team reference', () => {
     const content = buildContent(parse(valid)) as Content
@@ -64,6 +91,27 @@ describe('buildContent', () => {
   it('parses YAML yes/no into booleans', () => {
     const content = buildContent(parse(valid.replace('data_science: yes', 'data_science: no'))) as Content
     expect(content.scenarios[0].data_science).toBe(false)
+  })
+
+  it('accepts a shared verdict, resolves both teams and surfaces DSC-side people', () => {
+    const content = buildContent(parse(sharedDoc)) as Content
+    const sc = content.scenarios[0]
+    expect(sc.data_science).toBe('shared')
+    expect(sc.teamRef.id).toBe('it-services') // the lead (first contact)
+    expect(sc.teamRefAlso?.id).toBe('data-management') // the partner
+    // People come from the DSC side, never the external lead.
+    expect(sc.matchedMembers.map((m) => m.id)).toEqual(['dee'])
+  })
+
+  it('reports a dangling team_also reference by scenario id', () => {
+    try {
+      buildContent(parse(sharedDoc.replace('team_also: data-management', 'team_also: nope')))
+      throw new Error('expected ContentError')
+    } catch (err) {
+      expect(err).toBeInstanceOf(ContentError)
+      const issues = (err as ContentError).issues
+      expect(issues.some((i) => i.where.includes('"db-server"') && i.where.includes('team_also') && i.message.includes('nope'))).toBe(true)
+    }
   })
 
   it('reports a dangling team reference by scenario id', () => {
@@ -123,7 +171,7 @@ describe('seed public/content.yaml', () => {
     // Every scenario resolves to a real team.
     for (const sc of content.scenarios) expect(content.teams[sc.team]).toBeDefined()
     // Every DS-yes scenario routed to a DSC team surfaces at least one person.
-    const dsTeamScenarios = content.scenarios.filter((s) => s.data_science && content.teams[s.team].kind === 'dsc')
+    const dsTeamScenarios = content.scenarios.filter((s) => s.data_science === true && content.teams[s.team].kind === 'dsc')
     for (const sc of dsTeamScenarios) expect(sc.matchedMembers.length).toBeGreaterThan(0)
   })
 })

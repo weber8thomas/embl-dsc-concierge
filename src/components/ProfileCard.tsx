@@ -17,7 +17,10 @@ interface ProfileCardProps {
  */
 export function ProfileCard({ member, competencies, showCompetencies = true }: ProfileCardProps) {
   const [imgOk, setImgOk] = useState(Boolean(member.photo))
-  const tags = member.competencies ?? []
+  // "Leadership" is used for filtering/the network, but not shown as a chip.
+  const allTags = (member.competencies ?? []).filter((t) => t !== 'leadership')
+  const tags = allTags.slice(0, 3)
+  const extra = allTags.length - tags.length
 
   return (
     <div className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-embl-grey-lightest sm:flex-col sm:gap-0 sm:text-center">
@@ -41,19 +44,21 @@ export function ProfileCard({ member, competencies, showCompetencies = true }: P
             Team lead
           </span>
         )}
-        <h3 className="font-semibold leading-tight text-embl-grey-darkest">{member.name}</h3>
+        <h3 className="font-semibold leading-tight text-embl-grey-darkest">
+          {member.profile ? (
+            <a
+              href={member.profile}
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-embl-link hover:underline"
+            >
+              {member.name}
+            </a>
+          ) : (
+            member.name
+          )}
+        </h3>
         {member.position && <p className="mt-0.5 text-sm leading-snug text-embl-grey-dark">{member.position}</p>}
-        {member.orcid && (
-          <a
-            href={`https://orcid.org/${member.orcid}`}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-embl-link transition-colors hover:text-embl-link-hover sm:justify-center"
-          >
-            <span className="inline-block h-3 w-3 rounded-full bg-[#a6ce39] text-center text-[8px] font-bold leading-3 text-white" aria-hidden="true">iD</span>
-            {member.orcid}
-          </a>
-        )}
 
         {showCompetencies && tags.length > 0 && (
           <ul className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:justify-center">
@@ -65,6 +70,11 @@ export function ProfileCard({ member, competencies, showCompetencies = true }: P
                 {competencies[t]?.label ?? t}
               </li>
             ))}
+            {extra > 0 && (
+              <li className="rounded-full bg-embl-grey-lightest px-2.5 py-0.5 text-xs font-medium text-embl-grey-dark">
+                +{extra}
+              </li>
+            )}
           </ul>
         )}
       </div>

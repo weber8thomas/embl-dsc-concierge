@@ -12,16 +12,21 @@ import { z } from 'zod'
 export const PERSONAS = ['fellow', 'staff', 'PI', 'core-facility'] as const
 export const DIFFICULTIES = ['easy', 'boundary', 'hard'] as const
 
-/** Editors write yes/no; coerce to a boolean with a friendly error otherwise. */
+/**
+ * Editors write yes / no / shared. `yes`/`no` coerce to a boolean; `shared`
+ * marks a scenario both the DSC and another entity own (either swipe counts as
+ * correct, and the reveal lists both teams). Anything else gives a friendly error.
+ */
 const dataScienceSchema = z.preprocess((v) => {
   if (typeof v === 'boolean') return v
   if (typeof v === 'string') {
     const s = v.trim().toLowerCase()
     if (s === 'yes' || s === 'true') return true
     if (s === 'no' || s === 'false') return false
+    if (s === 'shared' || s === 'both') return 'shared'
   }
   return v
-}, z.boolean({ invalid_type_error: 'must be yes or no', required_error: 'must be yes or no' }))
+}, z.union([z.boolean(), z.literal('shared')], { errorMap: () => ({ message: 'must be yes, no or shared' }) }))
 
 export const pillarSchema = z
   .object({ name: z.string().min(1), blurb: z.string().optional(), icon: z.string().optional() })
@@ -54,8 +59,8 @@ export const memberSchema = z
     competencies: z.array(z.string()).optional(),
     /** Photo URL (e.g. content.embl.org). Optional — a fallback avatar is shown. */
     photo: z.string().url().optional(),
-    /** ORCID iD (digits, e.g. 0000-0001-7686-3249). Shown as a link on the card. */
-    orcid: z.string().optional(),
+    /** EMBL/EBI profile page URL (e.g. https://www.embl.org/people/person/jan-korbel). Shown as a link on the card. */
+    profile: z.string().url().optional(),
   })
   .strict()
 
@@ -93,14 +98,28 @@ export const serviceSchema = z
   })
   .strict()
 
+export const channelSchema = z
+  .object({
+    name: z.string().min(1),
+    url: z.string().url(),
+    blurb: z.string().optional(),
+    /** Competency tags used to surface this channel in matching scenario reveals. */
+    competencies: z.array(z.string()).optional(),
+  })
+  .strict()
+
 export const scenarioSchema = z
   .object({
     id: z.string().min(1),
     persona: z.enum(PERSONAS),
     question: z.string().min(1),
     data_science: dataScienceSchema,
-    /** Must reference a key under `teams:`; cross-checked in buildContent. */
+    /** Must reference a key under `teams:`; cross-checked in buildContent. For a
+     * `shared` scenario this is the *lead* (where you go first). */
     team: z.string().min(1),
+    /** For `shared` scenarios: the partner team that handles the rest. Must also
+     * reference a key under `teams:`; cross-checked in buildContent. */
+    team_also: z.string().optional(),
     /** Competency tags used to surface matching people; must exist under `competencies:`. */
     needs: z.array(z.string()).optional(),
     why: z.string().min(1),
@@ -118,6 +137,7 @@ export const contentSchema = z
     platforms: z.record(z.string(), platformSchema).optional(),
     training: z.record(z.string(), trainingSchema).optional(),
     services: z.array(serviceSchema).optional(),
+    channels: z.record(z.string(), channelSchema).optional(),
     scenarios: z.array(scenarioSchema).min(1),
   })
   .strict()
@@ -129,6 +149,7 @@ export type Member = z.infer<typeof memberSchema>
 export type Platform = z.infer<typeof platformSchema>
 export type TrainingItem = z.infer<typeof trainingSchema>
 export type Service = z.infer<typeof serviceSchema>
+export type Channel = z.infer<typeof channelSchema>
 export type Scenario = z.infer<typeof scenarioSchema>
 
 export type TeamWithId = Team & { id: string }
@@ -136,12 +157,17 @@ export type MemberWithId = Member & { id: string }
 export type PillarWithId = Pillar & { id: string }
 export type PlatformWithId = Platform & { id: string }
 export type TrainingWithId = TrainingItem & { id: string }
+export type ChannelWithId = Channel & { id: string }
 
 /** A scenario with its `team` resolved and the matching people computed. */
 export type ResolvedScenario = Scenario & {
   teamRef: TeamWithId
-  /** People who can help (members of the team matching `needs`, or all team members). */
+  /** The resolved `team_also` partner, for `shared` scenarios. */
+  teamRefAlso?: TeamWithId
+  /** People who can help (members of the DSC-side team matching `needs`, or all of them). */
   matchedMembers: MemberWithId[]
+  /** Community channels whose competencies overlap the scenario's `needs`. */
+  matchedChannels: ChannelWithId[]
 }
 
 export interface Content {
@@ -152,6 +178,7 @@ export interface Content {
   platforms: Record<string, Platform>
   training: Record<string, TrainingItem>
   services: Service[]
+  channels: Record<string, Channel>
   scenarios: ResolvedScenario[]
 }
 
@@ -213,6 +240,7 @@ export function buildContent(data: unknown): Content {
   const platforms = parsed.data.platforms ?? {}
   const training = parsed.data.training ?? {}
   const services = parsed.data.services ?? []
+  const channels = parsed.data.channels ?? {}
 
   const issues: ContentIssue[] = []
   const knownPillar = (p: string) => p in pillars
@@ -235,9 +263,14 @@ export function buildContent(data: unknown): Content {
   // Services: team (if given) must exist.
   for (const sv of services) if (sv.team && !teams[sv.team]) issues.push({ where: `service "${sv.id}" → team`, message: `references unknown team "${sv.team}".` })
 
-  // Scenarios: team must exist, needs must be known competencies, ids unique.
+  // Channels: tagged competencies must be known.
+  for (const [id, ch] of Object.entries(channels))
+    for (const c of ch.competencies ?? []) if (!knownCompetency(c)) issues.push({ where: `channel "${id}" → competencies`, message: `unknown competency "${c}".` })
+
+  // Scenarios: team(s) must exist, needs must be known competencies, ids unique.
   for (const sc of scenarios) {
     if (!teams[sc.team]) issues.push({ where: `scenario "${sc.id}" → team`, message: `references unknown team "${sc.team}". Add it under teams: or fix the reference.` })
+    if (sc.team_also && !teams[sc.team_also]) issues.push({ where: `scenario "${sc.id}" → team_also`, message: `references unknown team "${sc.team_also}". Add it under teams: or fix the reference.` })
     for (const c of sc.needs ?? []) if (!knownCompetency(c)) issues.push({ where: `scenario "${sc.id}" → needs`, message: `unknown competency "${c}".` })
   }
   const seen = new Map<string, number>()
@@ -247,17 +280,27 @@ export function buildContent(data: unknown): Content {
   if (issues.length) throw new ContentError(issues)
 
   const members: MemberWithId[] = Object.entries(membersRec).map(([id, m]) => ({ id, ...m }))
+  const channelList: ChannelWithId[] = Object.entries(channels).map(([id, c]) => ({ id, ...c }))
 
   const resolved: ResolvedScenario[] = scenarios.map((sc) => {
     const teamRef: TeamWithId = { id: sc.team, ...teams[sc.team] }
-    const teamMembers = members.filter((m) => m.team === sc.team)
+    const teamRefAlso: TeamWithId | undefined = sc.team_also
+      ? { id: sc.team_also, ...teams[sc.team_also] }
+      : undefined
+    // People are surfaced from the DSC-side team: prefer a DSC team among lead/also.
+    const peopleTeamId =
+      teamRef.kind === 'dsc' ? teamRef.id : teamRefAlso?.kind === 'dsc' ? teamRefAlso.id : sc.team
+    const teamMembers = members.filter((m) => m.team === peopleTeamId)
     const needs = sc.needs ?? []
     const matchedMembers =
       needs.length === 0
         ? teamMembers
         : teamMembers.filter((m) => (m.competencies ?? []).some((c) => needs.includes(c)))
-    return { ...sc, teamRef, matchedMembers }
+    // Community channels whose tags overlap the scenario's needs.
+    const matchedChannels =
+      needs.length === 0 ? [] : channelList.filter((ch) => (ch.competencies ?? []).some((c) => needs.includes(c)))
+    return { ...sc, teamRef, teamRefAlso, matchedMembers, matchedChannels }
   })
 
-  return { pillars, competencies, teams, members, platforms, training, services, scenarios: resolved }
+  return { pillars, competencies, teams, members, platforms, training, services, channels, scenarios: resolved }
 }

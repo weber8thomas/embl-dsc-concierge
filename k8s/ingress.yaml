@@ -5,8 +5,9 @@ metadata:
   labels:
     app: dsc-concierge
   annotations:
-    # EMBL Traefik issues a Sectigo certificate for the host below.
-    traefik.ingress.kubernetes.io/router.tls.certresolver: sectigo
+    # EMBL cert-manager issues a HARICA certificate for the host below and writes
+    # it to the `secretName` in spec.tls (created automatically).
+    cert-manager.io/cluster-issuer: harica-issuer
 spec:
   # internal-users = reachable from the EMBL network / VPN / wifi only.
   # Switch to external-users to expose it on the public internet.

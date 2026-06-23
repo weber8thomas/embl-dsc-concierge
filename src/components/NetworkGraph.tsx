@@ -178,12 +178,11 @@ function useMeasure<T extends HTMLElement>() {
 interface NetworkGraphProps {
   content: Content
   groupBy: GroupBy
-  onSelectMember?: (member: MemberWithId) => void
   focusTeam?: string | null
   focusCompetency?: string | null
 }
 
-export default function NetworkGraph({ content, groupBy, onSelectMember, focusTeam, focusCompetency }: NetworkGraphProps) {
+export default function NetworkGraph({ content, groupBy, focusTeam, focusCompetency }: NetworkGraphProps) {
   const fgRef = useRef<ForceGraphMethods<RFNode, GLink> | undefined>(undefined)
   const didFit = useRef(false)
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -440,7 +439,6 @@ export default function NetworkGraph({ content, groupBy, onSelectMember, focusTe
           member={selectedPerson.member}
           competencies={content.competencies}
           onClose={() => setSelectedId(null)}
-          onOpenProfile={() => onSelectMember?.(selectedPerson.member)}
         />
       )}
     </div>
@@ -452,12 +450,10 @@ function SelectedCard({
   member,
   competencies,
   onClose,
-  onOpenProfile,
 }: {
   member: MemberWithId
   competencies: Content['competencies']
   onClose: () => void
-  onOpenProfile: () => void
 }) {
   const tags = member.competencies ?? []
   return (
@@ -479,7 +475,18 @@ function SelectedCard({
           </span>
         )}
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight text-embl-grey-darkest">{member.name}</p>
+          {member.profile ? (
+            <a
+              href={member.profile}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-sm font-semibold leading-tight text-embl-grey-darkest transition-colors hover:text-embl-link hover:underline"
+            >
+              {member.name}
+            </a>
+          ) : (
+            <p className="truncate text-sm font-semibold leading-tight text-embl-grey-darkest">{member.name}</p>
+          )}
           {member.position && <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-embl-grey-dark">{member.position}</p>}
         </div>
       </div>
@@ -492,13 +499,6 @@ function SelectedCard({
           ))}
         </ul>
       )}
-      <button
-        type="button"
-        onClick={onOpenProfile}
-        className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
-      >
-        View full profile →
-      </button>
     </div>
   )
 }
