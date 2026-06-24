@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ChevronRight, Search, X } from 'lucide-react'
 import type { Content, ResolvedScenario, Scenario } from '../content/schema'
-import { PERSONAS } from '../content/schema'
+import { GENERIC_DSC, PERSONAS } from '../content/schema'
 import { Shell } from '../components/Shell'
 import { TeamIcon } from '../components/TeamIcon'
 import { PersonaBadge } from '../components/PersonaBadge'
@@ -127,11 +127,17 @@ export function Directory({ content, onBack }: { content: Content; onBack: () =>
                         >
                           <PersonaBadge persona={sc.persona} />
                           <p className="mt-3 font-medium text-embl-grey-darkest">{sc.question}</p>
-                          <div className="mt-auto flex items-center gap-2 pt-4 text-sm font-semibold text-embl-link">
-                            <TeamIcon icon={sc.teamRef.icon} sizeClass="h-7 w-7" iconClass="h-4 w-4" />
-                            <span className="min-w-0 flex-1 truncate text-embl-grey-darkest">{sc.teamRef.name}</span>
-                            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                          </div>
+                          {(() => {
+                            // Cross-team scenarios show the generic DSC label, matching the reveal.
+                            const card = sc.cross_team ? GENERIC_DSC : sc.teamRef
+                            return (
+                              <div className="mt-auto flex items-center gap-2 pt-4 text-sm font-semibold text-embl-link">
+                                <TeamIcon icon={card.icon} sizeClass="h-7 w-7" iconClass="h-4 w-4" />
+                                <span className="min-w-0 flex-1 truncate text-embl-grey-darkest">{card.name}</span>
+                                <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                              </div>
+                            )
+                          })()}
                         </button>
                       </li>
                     ))}
@@ -144,7 +150,7 @@ export function Directory({ content, onBack }: { content: Content; onBack: () =>
       </div>
 
       {selected && (
-        <ScenarioDialog scenario={selected} competencies={content.competencies} onClose={() => setSelected(null)} />
+        <ScenarioDialog key={selected.id} scenario={selected} competencies={content.competencies} onClose={() => setSelected(null)} />
       )}
     </Shell>
   )

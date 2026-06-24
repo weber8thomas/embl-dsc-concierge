@@ -69,7 +69,7 @@ export function Landing({ onStart, onDirectory, onExplore }: LandingProps) {
             </span>
             <h2 className="mt-4 text-xl font-bold text-embl-grey-darkest">Explore the DSC</h2>
             <p className="mt-1 min-h-[2.75rem] text-sm text-embl-grey-dark">
-              The people, platforms, training and services of the Data Science Centre.
+              The people, platforms, training, consulting and community of the Data Science Centre.
             </p>
             <div className="mt-5">
               <button

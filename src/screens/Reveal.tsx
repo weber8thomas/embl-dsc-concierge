@@ -32,7 +32,7 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
           {isShared ? (
             <span className="inline-flex items-center gap-3 text-embl-link">
               <Handshake className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
-              <span className="text-4xl font-bold tracking-tight sm:text-5xl">It’s a bit of both! 🤝</span>
+              <span className="text-4xl font-bold tracking-tight sm:text-5xl">It’s a bit of both!</span>
             </span>
           ) : correct ? (
             <span className="inline-flex items-center gap-3 text-embl-green-dark">
@@ -49,9 +49,9 @@ export function Reveal({ answer, competencies, isLast, onNext, onHome }: RevealP
 
         <p className="mt-3 text-center text-lg text-embl-grey-dark sm:text-xl">
           {isShared ? (
-            <>This one’s shared — the DSC and another team each own a piece, so <strong>{guess ? 'yes' : 'no'}</strong> both work.</>
+            <>The DSC and another team each own a piece of this one, so both yes and no count as correct.</>
           ) : (
-            <>This {isDS ? 'is' : 'is not'} a Data Science question — you answered <strong>{guess ? 'yes' : 'no'}</strong>.</>
+            <>The Data Science Centre {isDS ? 'can' : 'is not the place to'} help with this. You answered <strong>{guess ? 'yes' : 'no'}</strong>.</>
           )}
         </p>
 

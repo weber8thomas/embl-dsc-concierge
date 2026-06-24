@@ -16,7 +16,7 @@ export function Logo() {
       target="_blank"
       rel="noreferrer"
       className="inline-flex items-center rounded-lg p-1"
-      aria-label="EMBL — visit embl.org"
+      aria-label="EMBL, visit embl.org"
     >
       <img
         src={`${import.meta.env.BASE_URL}embl-logo.svg`}

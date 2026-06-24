@@ -3,20 +3,23 @@ import { ArrowLeft, ExternalLink, MessageSquare, Search } from 'lucide-react'
 import type { Content } from '../content/schema'
 import { Shell } from '../components/Shell'
 import { ProfileCard } from '../components/ProfileCard'
+import { resolveIcon } from '../components/icons'
 
 const NetworkGraph = lazy(() => import('../components/NetworkGraph'))
 type GroupBy = 'team' | 'competency'
 
 const ALL = '__all__'
-const TABS = ['people', 'network', 'platforms', 'training', 'services', 'channels'] as const
-type Tab = (typeof TABS)[number]
+/** Where the Consulting tab's banner CTA sends people to book a session. */
+const CONSULTING_BOOKING_URL = 'https://bio-it.embl.de/datascience-consulting/'
+const TABS = ['people', 'network', 'platforms', 'training', 'consulting', 'community'] as const
+export type Tab = (typeof TABS)[number]
 const TAB_LABEL: Record<Tab, string> = {
   people: 'People',
   network: 'Network',
   platforms: 'Platforms',
   training: 'Training',
-  services: 'Services',
-  channels: 'Channels',
+  consulting: 'Consulting',
+  community: 'Community',
 }
 
 const SELECT_CLASS =
@@ -24,19 +27,6 @@ const SELECT_CLASS =
 const GRID = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'
 /** Team ids shown first in the People tab (leadership before service teams). */
 const TEAM_PRIORITY = ['chairs', 'management']
-
-function PillarChips({ pillars, labels }: { pillars?: string[]; labels: Record<string, string> }) {
-  if (!pillars || pillars.length === 0) return null
-  return (
-    <ul className="mt-2 flex flex-wrap gap-1.5">
-      {pillars.map((p) => (
-        <li key={p} className="rounded-full bg-embl-green-lightest px-2.5 py-0.5 text-xs font-medium text-embl-green-darkest">
-          {labels[p] ?? p}
-        </li>
-      ))}
-    </ul>
-  )
-}
 
 function logoInitials(name: string): string {
   return name
@@ -72,33 +62,62 @@ function CardLogo({ name, logo }: { name: string; logo?: string }) {
   )
 }
 
-function CardLink({ href }: { href: string }) {
+/** Small icon roundel for cards without a logo (training, consulting) — same
+ * green-roundel language as CardLogo's placeholder, keeping the grid consistent. */
+function CardIcon({ icon }: { icon?: string }) {
+  const Icon = resolveIcon(icon)
+  return (
+    <span
+      aria-hidden="true"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-embl-green-lightest text-embl-green-darkest ring-1 ring-embl-green-light/40"
+    >
+      <Icon className="h-5 w-5" />
+    </span>
+  )
+}
+
+function CardLink({ href, label = 'Learn more' }: { href: string; label?: string }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+      className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
     >
       <ExternalLink className="h-4 w-4" aria-hidden="true" />
-      Learn more
+      {label}
     </a>
   )
 }
 
 /**
  * "Explore the DSC" — the reference catalogue of the Data Science Centre,
- * separate from the Concierge game: People, Platforms, Training and Services.
+ * separate from the Concierge game: People, Platforms, Training, Consulting and Community.
  */
-export function Explore({ content, onBack, initialTab = 'people' }: { content: Content; onBack: () => void; initialTab?: Tab }) {
-  const [tab, setTab] = useState<Tab>(initialTab)
+export function Explore({
+  content,
+  onBack,
+  initialTab = 'people',
+  onTabChange,
+}: {
+  content: Content
+  onBack: () => void
+  initialTab?: Tab
+  /** Notifies the parent (router) when the active tab changes, so it can sync the URL. */
+  onTabChange?: (tab: Tab) => void
+}) {
+  // Guard against a bogus tab arriving from the URL hash.
+  const [tab, setTab] = useState<Tab>(TABS.includes(initialTab) ? initialTab : 'people')
+  function selectTab(t: Tab) {
+    setTab(t)
+    onTabChange?.(t)
+  }
   const [query, setQuery] = useState('')
   const [team, setTeam] = useState<string>(ALL)
   const [competency, setCompetency] = useState<string>(ALL)
   const [groupBy, setGroupBy] = useState<GroupBy>('competency')
 
   const q = query.trim().toLowerCase()
-  const pillarLabels = Object.fromEntries(Object.entries(content.pillars).map(([id, p]) => [id, p.name]))
 
   const members = content.members.filter((m) => {
     if (team !== ALL && m.team !== team) return false
@@ -120,7 +139,12 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
     ([, p]) => !q || `${p.name} ${p.blurb ?? ''} ${p.category ?? ''}`.toLowerCase().includes(q),
   )
   const training = Object.entries(content.training).filter(([, t]) => !q || `${t.name} ${t.blurb ?? ''}`.toLowerCase().includes(q))
-  const services = content.services.filter((s) => !q || `${s.name} ${s.blurb ?? ''}`.toLowerCase().includes(q))
+  const consulting = Object.entries(content.consulting).filter(
+    ([, c]) => !q || `${c.name} ${c.blurb ?? ''}`.toLowerCase().includes(q),
+  )
+  const initiatives = Object.entries(content.initiatives).filter(
+    ([, i]) => !q || `${i.name} ${i.blurb ?? ''}`.toLowerCase().includes(q),
+  )
   const channels = Object.entries(content.channels).filter(
     ([, c]) => !q || `${c.name} ${c.blurb ?? ''}`.toLowerCase().includes(q),
   )
@@ -141,7 +165,7 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
     >
       <div className="py-2">
         <h1 className="text-3xl font-bold text-embl-grey-darkest">Explore the DSC</h1>
-        <p className="mt-1 text-embl-grey-dark">The people, platforms, training and services of the EMBL Data Science Centre.</p>
+        <p className="mt-1 text-embl-grey-dark">The people, platforms, training, consulting and community of the EMBL Data Science Centre.</p>
 
         <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Explore sections">
           {TABS.map((t) => (
@@ -149,7 +173,7 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
               key={t}
               role="tab"
               aria-selected={tab === t}
-              onClick={() => setTab(t)}
+              onClick={() => selectTab(t)}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                 tab === t ? 'bg-embl-green text-white' : 'bg-embl-grey-lightest text-embl-grey-dark hover:bg-embl-green-lightest'
               }`}
@@ -277,7 +301,6 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
                   </div>
                 </div>
                 {p.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{p.blurb}</p>}
-                <PillarChips pillars={p.pillars} labels={pillarLabels} />
                 {p.url && <CardLink href={p.url} />}
               </li>
             ))}
@@ -288,55 +311,96 @@ export function Explore({ content, onBack, initialTab = 'people' }: { content: C
           <ul className={`mt-5 ${GRID}`}>
             {training.map(([id, t]) => (
               <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
-                <h3 className="font-semibold text-embl-grey-darkest">{t.name}</h3>
-                {t.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{t.blurb}</p>}
-                <PillarChips pillars={t.pillars} labels={pillarLabels} />
+                <div className="flex items-start gap-3">
+                  <CardIcon icon={t.icon} />
+                  <h3 className="font-semibold text-embl-grey-darkest">{t.name}</h3>
+                </div>
+                {t.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{t.blurb}</p>}
                 {t.url && <CardLink href={t.url} />}
               </li>
             ))}
           </ul>
         )}
 
-        {tab === 'services' && (
-          <ul className={`mt-5 ${GRID}`}>
-            {services.map((s) => (
-              <li key={s.id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
-                <div className="flex items-start gap-3">
-                  <CardLogo name={s.name} logo={s.logo} />
-                  <h3 className="font-semibold text-embl-grey-darkest">{s.name}</h3>
-                </div>
-                {s.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{s.blurb}</p>}
-                {s.team && content.teams[s.team] && (
-                  <p className="mt-2 text-xs font-medium text-embl-grey">{content.teams[s.team].name}</p>
-                )}
-                <div className="mt-auto pt-3">
-                  {s.link ? <CardLink href={s.link} /> : <span className="text-xs italic text-embl-grey">Link coming soon</span>}
-                </div>
-              </li>
-            ))}
-            {services.length === 0 && <Empty />}
-          </ul>
+        {tab === 'consulting' && (
+          <div className="mt-5">
+            <div className="flex flex-col items-start gap-3 rounded-2xl bg-embl-green-lightest p-5 ring-1 ring-embl-green-light/40 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-bold text-embl-green-darkest">Need data-science advice?</h3>
+                <p className="mt-0.5 text-sm text-embl-green-dark">
+                  Book a free consultation with a Data Science Centre expert, in any of the areas below.
+                </p>
+              </div>
+              <a
+                href={CONSULTING_BOOKING_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-embl-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-embl-green-dark"
+              >
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                Ask for a consultation
+              </a>
+            </div>
+
+            <ul className={`mt-5 ${GRID}`}>
+              {consulting.map(([id, c]) => (
+                <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
+                  <div className="flex items-start gap-3">
+                    <CardIcon icon={c.icon} />
+                    <h3 className="font-semibold text-embl-grey-darkest">{c.name}</h3>
+                  </div>
+                  {c.blurb && <p className="mt-2 text-sm text-embl-grey-dark">{c.blurb}</p>}
+                </li>
+              ))}
+            </ul>
+            {consulting.length === 0 && <Empty />}
+          </div>
         )}
 
-        {tab === 'channels' && (
-          <ul className={`mt-5 ${GRID}`}>
-            {channels.map(([id, c]) => (
-              <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
-                <h3 className="font-semibold text-embl-grey-darkest">{c.name}</h3>
-                {c.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{c.blurb}</p>}
-                <a
-                  href={c.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
-                >
-                  <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                  Join the channel
-                </a>
-              </li>
-            ))}
-            {channels.length === 0 && <Empty />}
-          </ul>
+        {tab === 'community' && (
+          <div className="mt-5">
+            {initiatives.length > 0 && (
+              <>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-embl-grey">Community-driven initiatives</h3>
+                <ul className={`mt-3 ${GRID}`}>
+                  {initiatives.map(([id, i]) => (
+                    <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
+                      <h4 className="font-semibold text-embl-grey-darkest">{i.name}</h4>
+                      {i.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{i.blurb}</p>}
+                      <CardLink href={i.url} label="Find out more" />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {channels.length > 0 && (
+              <>
+                <h3 className={`text-xs font-semibold uppercase tracking-wide text-embl-grey ${initiatives.length > 0 ? 'mt-8' : ''}`}>
+                  Chat channels
+                </h3>
+                <ul className={`mt-3 ${GRID}`}>
+                  {channels.map(([id, c]) => (
+                    <li key={id} className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-embl-grey-lightest">
+                      <h4 className="font-semibold text-embl-grey-darkest">{c.name}</h4>
+                      {c.blurb && <p className="mt-1 text-sm text-embl-grey-dark">{c.blurb}</p>}
+                      <a
+                        href={c.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+                      >
+                        <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                        Join the channel
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {initiatives.length === 0 && channels.length === 0 && <Empty />}
+          </div>
         )}
       </div>
     </Shell>

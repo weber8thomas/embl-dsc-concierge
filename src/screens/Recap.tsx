@@ -23,7 +23,7 @@ interface RecapProps {
 function verdict(score: number, total: number): { title: string; sub: string } {
   const pct = total > 0 ? score / total : 0
   if (pct === 1) return { title: 'Perfect round! 🎯', sub: 'You know exactly who to ask.' }
-  if (pct >= 0.8) return { title: 'Nicely done!', sub: 'You can spot a data-science question.' }
+  if (pct >= 0.8) return { title: 'Nicely done!', sub: 'You know when the DSC can help.' }
   if (pct >= 0.5) return { title: 'Good triaging!', sub: 'A few more rounds and you’ll have it down.' }
   return { title: 'Warming up!', sub: 'The directory below shows who does what.' }
 }
@@ -35,7 +35,7 @@ export function Recap({ score, total, bestStreak, results, teams, onPlayAgain, o
   async function share() {
     const grid = results.map((r) => (r ? '🟢' : '⚪')).join('')
     const url = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''
-    const text = `DSC Concierge — ${score}/${total} correct · best streak ${bestStreak}\n${grid}`
+    const text = `DSC Concierge · ${score}/${total} correct · best streak ${bestStreak}\n${grid}`
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({ title: 'DSC Concierge', text, url })

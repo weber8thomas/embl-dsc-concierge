@@ -1,11 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { TeamWithId, ResolvedScenario } from '../content/schema'
+import { GENERIC_DSC, type TeamWithId, type ResolvedScenario } from '../content/schema'
 
 export interface Answer {
   scenario: ResolvedScenario
   guess: boolean
   correct: boolean
 }
+
+/** Cards drawn per round — a short, booth-friendly subset of the full deck. */
+const ROUND_SIZE = 10
 
 /** Fisher–Yates shuffle (returns a new array; input untouched). */
 function shuffled<T>(input: readonly T[]): T[] {
@@ -42,7 +45,7 @@ export interface Game {
  * the clean extension point for a future shared leaderboard / analytics backend.
  */
 export function useGame(scenarios: ResolvedScenario[]): Game {
-  const [deck, setDeck] = useState<ResolvedScenario[]>(() => shuffled(scenarios))
+  const [deck, setDeck] = useState<ResolvedScenario[]>(() => shuffled(scenarios).slice(0, ROUND_SIZE))
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<Answer[]>([])
   const [streak, setStreak] = useState(0)
@@ -74,7 +77,7 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
   const next = useCallback(() => setIndex((i) => i + 1), [])
 
   const restart = useCallback(() => {
-    setDeck(shuffled(scenarios))
+    setDeck(shuffled(scenarios).slice(0, ROUND_SIZE))
     setIndex(0)
     setAnswers([])
     setStreak(0)
@@ -88,9 +91,14 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
     const byId = new Map<string, TeamWithId>()
     for (const a of answers) {
       if (!a) continue
-      byId.set(a.scenario.teamRef.id, a.scenario.teamRef)
+      // Cross-team scenarios contribute a single generic "Data Science Centre" entry
+      // (matching the reveal), since their people span several teams.
+      if (a.scenario.cross_team) byId.set(GENERIC_DSC.id, GENERIC_DSC)
+      else byId.set(a.scenario.teamRef.id, a.scenario.teamRef)
       // Shared scenarios route to two teams — list both in the recap shortlist.
       if (a.scenario.teamRefAlso) byId.set(a.scenario.teamRefAlso.id, a.scenario.teamRefAlso)
+      // Multi-team scenarios can also route to several other teams.
+      for (const t of a.scenario.otherTeamRefs) byId.set(t.id, t)
     }
     return [...byId.values()]
   }, [answers])

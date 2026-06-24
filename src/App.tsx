@@ -62,7 +62,7 @@ function ContentErrorScreen({ error }: { error: ContentError | Error }) {
               {issues.map((iss, i) => (
                 <li key={i} className="rounded-lg bg-embl-grey-lightest/50 p-3 text-sm">
                   <span className="font-semibold text-embl-grey-darkest">{iss.where}</span>
-                  <span className="text-embl-grey-dark"> — {iss.message}</span>
+                  <span className="text-embl-grey-dark">: {iss.message}</span>
                 </li>
               ))}
             </ul>

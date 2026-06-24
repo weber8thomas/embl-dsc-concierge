@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
-import type { Competency, ResolvedScenario, TeamWithId } from '../content/schema'
+import { GENERIC_DSC, type Competency, type ResolvedScenario, type TeamWithId } from '../content/schema'
 import { TeamIcon } from './TeamIcon'
 import { TeamActions } from './TeamActions'
 import { ProfileCard } from './ProfileCard'
 
-/** How many example people to show in a reveal (not the whole team). */
+/** How many example people to show by default (a "show all" toggle reveals the rest). */
 const MAX_EXAMPLE_PEOPLE = 3
 
 interface ScenarioResultProps {
@@ -35,19 +36,22 @@ function TeamBlock({ team, caption }: { team: TeamWithId; caption?: string }) {
  * For a `shared` scenario it shows both the lead team and the partner team.
  */
 export function ScenarioResult({ scenario, competencies, showQuestion = true }: ScenarioResultProps) {
-  const team = scenario.teamRef
+  const [showAll, setShowAll] = useState(false)
   const teamAlso = scenario.teamRefAlso
   const isShared = scenario.data_science === 'shared'
   const isDS = scenario.data_science === true
+  // Cross-team scenarios point at the DSC as a whole rather than one specific team.
+  const primaryTeam = scenario.cross_team ? GENERIC_DSC : scenario.teamRef
 
-  // Show a few example people — those whose competencies best match the scenario,
-  // lead first — rather than dumping the whole team.
+  // Rank example people by competency match, lead first.
   const needs = scenario.needs ?? []
   const score = (m: { competencies?: string[] }) => (m.competencies ?? []).filter((c) => needs.includes(c)).length
-  const ranked = [...scenario.matchedMembers].sort((a, b) => score(b) - score(a) || (b.lead ? 1 : 0) - (a.lead ? 1 : 0))
-  const people = ranked.slice(0, MAX_EXAMPLE_PEOPLE)
-  const moreCount = scenario.matchedMembers.length - people.length
-  const peopleTeam = team.kind === 'dsc' ? team : teamAlso?.kind === 'dsc' ? teamAlso : team
+  // Pinned `people:` keep their authored order; otherwise rank by competency match, lead first.
+  const ranked = scenario.people
+    ? [...scenario.matchedMembers]
+    : [...scenario.matchedMembers].sort((a, b) => score(b) - score(a) || (b.lead ? 1 : 0) - (a.lead ? 1 : 0))
+  const visible = showAll ? ranked : ranked.slice(0, MAX_EXAMPLE_PEOPLE)
+  const hiddenCount = ranked.length - MAX_EXAMPLE_PEOPLE
 
   const channels = scenario.matchedChannels.slice(0, 4)
 
@@ -63,21 +67,42 @@ export function ScenarioResult({ scenario, competencies, showQuestion = true }: 
       </p>
 
       <div className="mt-3 space-y-5">
-        <TeamBlock team={team} caption={isShared ? 'Start here' : undefined} />
+        <TeamBlock team={primaryTeam} caption={isShared ? 'Start here' : undefined} />
         {teamAlso && <TeamBlock team={teamAlso} caption="…and who handles the rest" />}
       </div>
 
-      {people.length > 0 && (
+      {scenario.otherTeamRefs.length > 0 && (
+        <div className="mt-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-embl-grey">
+            Other teams that can help, depending on your use case
+          </p>
+          <div className="space-y-4">
+            {scenario.otherTeamRefs.map((t) => (
+              <TeamBlock key={t.id} team={t} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {visible.length > 0 && (
         <div className="mt-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-embl-grey">For example, ask</p>
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {people.map((m) => (
+            {visible.map((m) => (
               <li key={m.id}>
                 <ProfileCard member={m} competencies={competencies} />
               </li>
             ))}
           </ul>
-          {moreCount > 0 && <p className="mt-3 text-xs text-embl-grey">+{moreCount} more in {peopleTeam.name}</p>}
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="mt-3 text-xs font-semibold text-embl-link transition-colors hover:text-embl-link-hover"
+            >
+              {showAll ? 'Show fewer' : `+${hiddenCount} more (show all)`}
+            </button>
+          )}
         </div>
       )}
 
@@ -105,7 +130,7 @@ export function ScenarioResult({ scenario, competencies, showQuestion = true }: 
       {/* Contact routes for the entry-point team only — the partner is shown
           above under "who does what", so we don't duplicate its team-page link. */}
       <div className="mt-5">
-        <TeamActions team={team} />
+        <TeamActions team={primaryTeam} />
       </div>
     </div>
   )

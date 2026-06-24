@@ -1,8 +1,8 @@
 /**
  * `npm run catalog` — build dsc-catalog.xlsx from public/content.yaml.
  *
- * One sheet per section (Pillars, Teams, Members, Competencies, Platforms,
- * Training, Services, Scenarios) so the DSC taxonomy can be reviewed/edited in
+ * One sheet per section (Teams, Members, Competencies, Platforms, Training,
+ * Consulting, Initiatives, Scenarios) so the DSC taxonomy can be reviewed/edited in
  * Excel. content.yaml stays the single source of truth — re-run after editing.
  */
 import { readFileSync } from 'node:fs'
@@ -31,18 +31,14 @@ try {
   throw err
 }
 
-const pillars = Object.entries(content.pillars).map(([id, p]) => ({ id, name: p.name, blurb: p.blurb ?? '' }))
-
 const competencies = Object.entries(content.competencies).map(([id, c]) => ({ id, label: c.label }))
 
 const teams = Object.entries(content.teams).map(([id, t]) => ({
   id,
   name: t.name,
   kind: t.kind,
-  pillars: list(t.pillars),
   blurb: t.blurb ?? '',
   link: t.link ?? '',
-  mattermost: t.mattermost ?? '',
   ticket: t.ticket ?? '',
 }))
 
@@ -60,7 +56,6 @@ const platforms = Object.entries(content.platforms).map(([id, p]) => ({
   id,
   name: p.name,
   category: p.category ?? '',
-  pillars: list(p.pillars),
   blurb: p.blurb ?? '',
   url: p.url ?? '',
 }))
@@ -68,18 +63,22 @@ const platforms = Object.entries(content.platforms).map(([id, p]) => ({
 const training = Object.entries(content.training).map(([id, t]) => ({
   id,
   name: t.name,
-  pillars: list(t.pillars),
   blurb: t.blurb ?? '',
   url: t.url ?? '',
 }))
 
-const services = content.services.map((s) => ({
-  id: s.id,
-  name: s.name,
-  team: s.team ?? '',
-  team_name: s.team ? (content.teams[s.team]?.name ?? '') : '',
-  blurb: s.blurb ?? '',
-  link: s.link ?? '',
+const consulting = Object.entries(content.consulting).map(([id, c]) => ({
+  id,
+  name: c.name,
+  blurb: c.blurb ?? '',
+  url: c.url ?? '',
+}))
+
+const initiatives = Object.entries(content.initiatives).map(([id, i]) => ({
+  id,
+  name: i.name,
+  blurb: i.blurb ?? '',
+  url: i.url,
 }))
 
 const scenarios = content.scenarios.map((s) => ({
@@ -91,27 +90,28 @@ const scenarios = content.scenarios.map((s) => ({
   team_name: s.teamRef.name,
   team_also: s.team_also ?? '',
   team_also_name: s.teamRefAlso?.name ?? '',
+  other_teams: s.otherTeamRefs.map((t) => t.name).join(', '),
   needs: list(s.needs),
   people: s.matchedMembers.map((m) => m.name).join(', '),
   why: s.why,
-  difficulty: s.difficulty ?? '',
 }))
 
 const wb = XLSX.utils.book_new()
 const add = (name: string, rows: Record<string, unknown>[]) =>
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name)
 
-add('Pillars', pillars)
 add('Teams', teams)
 add('Members', members)
 add('Competencies', competencies)
 add('Platforms', platforms)
 add('Training', training)
-add('Services', services)
+add('Consulting', consulting)
+add('Initiatives', initiatives)
 add('Scenarios', scenarios)
 
 XLSX.writeFile(wb, out)
 console.log(
-  `\n✓ Wrote ${out}\n  ${pillars.length} pillars · ${teams.length} teams · ${members.length} members · ` +
-    `${platforms.length} platforms · ${training.length} training · ${services.length} services · ${scenarios.length} scenarios\n`,
+  `\n✓ Wrote ${out}\n  ${teams.length} teams · ${members.length} members · ` +
+    `${platforms.length} platforms · ${training.length} training · ${consulting.length} consulting · ` +
+    `${initiatives.length} initiatives · ${scenarios.length} scenarios\n`,
 )

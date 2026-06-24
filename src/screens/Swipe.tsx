@@ -73,7 +73,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
       <div className="flex flex-1 flex-col justify-center">
         {/* The constant prompt — prominent, above the card. */}
         <h1 className="text-balance text-center text-2xl font-bold tracking-tight text-embl-grey-darkest sm:text-3xl">
-          Is this a Data Science question?
+          Can the Data Science Centre help with this?
         </h1>
 
         <div className="relative mt-5">
@@ -101,7 +101,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
             type="button"
             onClick={() => answer(false)}
             className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-xl bg-embl-red px-8 py-3.5 text-lg font-bold text-white shadow-sm transition-opacity hover:opacity-90"
-            aria-label="No, this is not a data science question"
+            aria-label="No, another team is the right place"
           >
             <X className="h-6 w-6" aria-hidden="true" />
             No
@@ -110,7 +110,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
             type="button"
             onClick={() => answer(true)}
             className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-xl bg-embl-green px-8 py-3.5 text-lg font-bold text-white shadow-sm transition-colors hover:bg-embl-green-dark"
-            aria-label="Yes, this is a data science question"
+            aria-label="Yes, the Data Science Centre can help"
           >
             <Check className="h-6 w-6" aria-hidden="true" />
             Yes
