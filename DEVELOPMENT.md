@@ -23,6 +23,25 @@ project sub-path or an intranet path unchanged.
 `k8s/kustomization.yaml`; commit, then `git tag vX.Y.Z` and push the tag (CI builds the image);
 `kubectl apply -k k8s/` once the image is published.
 
+### Kubernetes
+
+Manifests live in [`k8s/`](k8s/) (kustomize), namespace `datasci-concierge-app`:
+
+| File | What it does |
+| --- | --- |
+| `deployment.yaml` | **3 replicas** of the nginx image, spread across nodes (anti-affinity); rolling update with `maxUnavailable: 0` (zero downtime). Tiny footprint (request 50m CPU / 64Mi, limit 250m / 128Mi). |
+| `service.yaml` | ClusterIP on port 80. |
+| `ingress.yaml` | Host `dsc-concierge.embl.org`; TLS via cert-manager (`harica-issuer`). |
+| `kustomization.yaml` | Pins the image `newTag` (bump per release). |
+
+Replicas buy availability and zero downtime rollouts, not throughput (it's a static site).
+
+```bash
+kubectl apply -k k8s/                                            # deploy / update
+kubectl -n datasci-concierge-app get pods,deploy                 # check
+kubectl -n datasci-concierge-app rollout status deploy/dsc-concierge
+```
+
 ---
 
 ## Design & accessibility

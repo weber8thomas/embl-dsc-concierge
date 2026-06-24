@@ -7,6 +7,8 @@ app reveals the answer and points to the right team, people and channels.
 Built for an event booth (open on a phone via a QR code) and the DSC intranet. Fully static, no
 backend.
 
+**Live: [dsc-concierge.embl.org](https://dsc-concierge.embl.org/)**
+
 - **Stack:** Vite + React + TypeScript, Tailwind (EMBL design tokens), Framer Motion, lucide-react,
   js-yaml + zod.
 - **All content lives in one human editable file:** [`public/content.yaml`](public/content.yaml).
