@@ -141,6 +141,20 @@ export const scenarioSchema = z
   })
   .strict()
 
+/** Per-round verdict balance: how many `yes` / `shared` / `no` cards to draw each
+ * round. The round size is their sum. */
+export const gameSchema = z
+  .object({
+    mix: z
+      .object({
+        yes: z.number().int().nonnegative(),
+        shared: z.number().int().nonnegative(),
+        no: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict()
+
 export const contentSchema = z
   .object({
     competencies: z.record(z.string(), competencySchema).optional(),
@@ -151,9 +165,14 @@ export const contentSchema = z
     consulting: z.record(z.string(), consultingSchema).optional(),
     initiatives: z.record(z.string(), initiativeSchema).optional(),
     channels: z.record(z.string(), channelSchema).optional(),
+    game: gameSchema.optional(),
     scenarios: z.array(scenarioSchema).min(1),
   })
   .strict()
+
+export type GameConfig = z.infer<typeof gameSchema>
+/** Default per-round mix when `game:` is absent from content.yaml (balanced, 10 cards). */
+export const DEFAULT_GAME: GameConfig = { mix: { yes: 5, shared: 3, no: 2 } }
 
 export type Competency = z.infer<typeof competencySchema>
 export type Team = z.infer<typeof teamSchema>
@@ -207,6 +226,7 @@ export interface Content {
   consulting: Record<string, Consulting>
   initiatives: Record<string, Initiative>
   channels: Record<string, Channel>
+  game: GameConfig
   scenarios: ResolvedScenario[]
 }
 
@@ -272,6 +292,7 @@ export function buildContent(data: unknown): Content {
   const consulting = parsed.data.consulting ?? {}
   const initiatives = parsed.data.initiatives ?? {}
   const channels = parsed.data.channels ?? {}
+  const game = parsed.data.game ?? DEFAULT_GAME
 
   const issues: ContentIssue[] = []
   const knownCompetency = (c: string) => c in competencies
@@ -342,5 +363,5 @@ export function buildContent(data: unknown): Content {
     return { ...sc, teamRef, teamRefAlso, otherTeamRefs, matchedMembers, matchedChannels }
   })
 
-  return { competencies, teams, members, platforms, training, consulting, initiatives, channels, scenarios: resolved }
+  return { competencies, teams, members, platforms, training, consulting, initiatives, channels, game, scenarios: resolved }
 }

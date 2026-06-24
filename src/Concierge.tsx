@@ -43,7 +43,7 @@ function toHash(screen: Screen, tab?: Tab): string {
  */
 export function Concierge({ content }: { content: Content }) {
   const reduced = useReducedMotion()
-  const game = useGame(content.scenarios)
+  const game = useGame(content.scenarios, content.game)
   const initial = parseHash()
   const [screen, setScreen] = useState<Screen>(initial.screen)
   const [exploreTab, setExploreTab] = useState<Tab | undefined>(initial.tab)

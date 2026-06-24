@@ -10,6 +10,7 @@
 #   consulting    the DSC consulting areas
 #   initiatives   community-driven user groups & clubs
 #   channels      EMBL chat (Mattermost) community channels
+#   game          how many yes / shared / no cards appear per round
 #   scenarios     the swipe questions
 #
 # To add a question: copy a scenario block, change the text, set `team:` to a team id
@@ -21,6 +22,16 @@
 # Tip: run `npm run validate` to check this file, and `npm run catalog` to regenerate
 # the dsc-catalog.xlsx spreadsheet from it.
 # ─────────────────────────────────────────────────────────────────────────────
+
+# Per-round balance: how many cards of each verdict to draw each round. The round
+# size is their sum (here 10). yes = the DSC can help, shared = DSC + a partner,
+# no = not the DSC. If a verdict has fewer scenarios than its quota, the round is
+# topped up from the others.
+game:
+  mix:
+    yes: 5
+    shared: 3
+    no: 2
 
 # Controlled list of competency tags. Members are tagged with these, and a
 # scenario's `needs:` references them to surface the right people.

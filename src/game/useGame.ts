@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { GENERIC_DSC, type TeamWithId, type ResolvedScenario } from '../content/schema'
+import { GENERIC_DSC, type GameConfig, type TeamWithId, type ResolvedScenario } from '../content/schema'
 
 export interface Answer {
   scenario: ResolvedScenario
@@ -7,8 +7,7 @@ export interface Answer {
   correct: boolean
 }
 
-/** Cards drawn per round — a short, booth-friendly subset of the full deck. */
-const ROUND_SIZE = 10
+type Verdict = 'yes' | 'shared' | 'no'
 
 /** Fisher–Yates shuffle (returns a new array; input untouched). */
 function shuffled<T>(input: readonly T[]): T[] {
@@ -18,6 +17,30 @@ function shuffled<T>(input: readonly T[]): T[] {
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+
+const verdictOf = (s: ResolvedScenario): Verdict => (s.data_science === 'shared' ? 'shared' : s.data_science ? 'yes' : 'no')
+
+/**
+ * Draw a balanced round: take `mix[v]` scenarios of each verdict (shuffled within
+ * each), backfill any shortfall (a verdict with too few scenarios) from the
+ * leftovers, then shuffle the result so verdicts interleave. Exported for tests.
+ */
+export function drawRound(scenarios: readonly ResolvedScenario[], mix: GameConfig['mix']): ResolvedScenario[] {
+  const pools: Record<Verdict, ResolvedScenario[]> = { yes: [], shared: [], no: [] }
+  for (const s of scenarios) pools[verdictOf(s)].push(s)
+
+  const picked: ResolvedScenario[] = []
+  const leftover: ResolvedScenario[] = []
+  for (const v of ['yes', 'shared', 'no'] as const) {
+    const pool = shuffled(pools[v])
+    picked.push(...pool.slice(0, mix[v]))
+    leftover.push(...pool.slice(mix[v]))
+  }
+
+  const target = mix.yes + mix.shared + mix.no
+  if (picked.length < target) picked.push(...shuffled(leftover).slice(0, target - picked.length))
+  return shuffled(picked)
 }
 
 export interface Game {
@@ -44,8 +67,8 @@ export interface Game {
  * the per-card answers used by the reveal and recap screens. Pure in-memory —
  * the clean extension point for a future shared leaderboard / analytics backend.
  */
-export function useGame(scenarios: ResolvedScenario[]): Game {
-  const [deck, setDeck] = useState<ResolvedScenario[]>(() => shuffled(scenarios).slice(0, ROUND_SIZE))
+export function useGame(scenarios: ResolvedScenario[], game: GameConfig): Game {
+  const [deck, setDeck] = useState<ResolvedScenario[]>(() => drawRound(scenarios, game.mix))
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<Answer[]>([])
   const [streak, setStreak] = useState(0)
@@ -77,12 +100,12 @@ export function useGame(scenarios: ResolvedScenario[]): Game {
   const next = useCallback(() => setIndex((i) => i + 1), [])
 
   const restart = useCallback(() => {
-    setDeck(shuffled(scenarios).slice(0, ROUND_SIZE))
+    setDeck(drawRound(scenarios, game.mix))
     setIndex(0)
     setAnswers([])
     setStreak(0)
     setBestStreak(0)
-  }, [scenarios])
+  }, [scenarios, game])
 
   const score = answers.filter((a) => a?.correct).length
   const isFinished = index >= deck.length

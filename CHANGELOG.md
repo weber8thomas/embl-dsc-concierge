@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.1
+
+- Balanced rounds: each round draws a configurable mix of verdicts (default 5 yes, 3 shared, 2 no), set under `game:` in `content.yaml`, with backfill if a verdict is short.
+- Docs: README rewritten around content editing with three scenario examples (map to a team, to people, to competencies); build, deploy and design notes moved to `DEVELOPMENT.md`.
+
 ## v1.2.0
 
 - Reframe the prompt to **"Can the Data Science Centre help with this?"**; richer scenario routing (multi team, cross team, pinned people and channels); drop `difficulty` and `pillars`.

@@ -1,206 +1,165 @@
 # DSC Concierge
 
-A swipe-based triage game and self-service router for the **EMBL Data Science Centre (DSC)**.
-A scenario appears, the player guesses whether it's a *Data Science question*, and the app
-reveals the answer and points to the right team and communication channels.
+A swipe based triage game and self service router for the **EMBL Data Science Centre (DSC)**.
+A scenario appears, the player guesses **"Can the Data Science Centre help with this?"**, and the
+app reveals the answer and points to the right team, people and channels.
 
-Built for an event booth (open on a phone via a QR code) and the DSC intranet. Fully static —
-no backend required.
+Built for an event booth (open on a phone via a QR code) and the DSC intranet. Fully static, no
+backend.
 
-- **Stack:** Vite + React + TypeScript, Tailwind CSS (EMBL design tokens), Framer Motion,
-  lucide-react, js-yaml + zod.
-- **All content lives in one human-editable file:** [`public/content.yaml`](public/content.yaml).
-  A non-technical editor can add a question by editing that file and refreshing — no code, no rebuild.
+- **Stack:** Vite + React + TypeScript, Tailwind (EMBL design tokens), Framer Motion, lucide-react,
+  js-yaml + zod.
+- **All content lives in one human editable file:** [`public/content.yaml`](public/content.yaml).
+  Add or change anything by editing that file and refreshing. No code, no rebuild.
 
 ---
 
 ## Quick start
 
 ```bash
-npm install        # install dependencies (once)
-npm run dev        # start the dev server → http://localhost:5173
+npm install     # once
+npm run dev     # http://localhost:5173
 ```
 
-Other scripts:
+`npm run validate` checks `public/content.yaml` (friendly, located errors). Also: `npm test`,
+`npm run build`, `npm run catalog` (regenerate `dsc-catalog.xlsx`).
 
-| Command | What it does |
+---
+
+## Content model
+
+Everything the app shows comes from `public/content.yaml`. Sections:
+
+| Section | What it is |
 | --- | --- |
-| `npm run dev` | Run the app locally with hot reload. |
-| `npm run validate` | Check `public/content.yaml` and print friendly errors. |
-| `npm test` | Run the data-layer unit tests (Vitest). |
-| `npm run build` | Produce the static site in `dist/`. |
-| `npm run preview` | Serve the built `dist/` locally to sanity-check a build. |
+| `competencies` | Controlled skill tags, referenced by members, channels and scenarios. |
+| `teams` | DSC teams and external targets (IT, Core Facilities, EMBL-EBI). |
+| `members` | People, each tagged to a `team` and with `competencies`. |
+| `platforms` | Tools and platforms catalogue (Explore tab). |
+| `training` | Links to the canonical Bio-IT course resources. |
+| `consulting` | The DSC consulting areas. |
+| `initiatives` | Community user groups and clubs. |
+| `channels` | EMBL chat (Mattermost) channels. |
+| `scenarios` | The swipe questions (see below). |
+
+`npm run validate` names the exact section, id and field on any problem, and the running app shows
+the same friendly errors on screen instead of crashing.
 
 ---
 
-## ✏️ How to add a question (no coding needed)
+## Scenarios
 
-Everything the app shows comes from one file: **`public/content.yaml`**. You only ever edit this file.
+A scenario is one swipe card plus how its reveal is routed. **`data_science`** is both the right
+answer and the routing intent:
 
-It has two parts:
+| Value | Meaning | Routes to |
+| --- | --- | --- |
+| `yes` | The DSC can help | a DSC `team` |
+| `no` | Someone else handles it | an external `team` (IT, Core Facilities, EMBL-EBI) |
+| `shared` | The DSC and a partner each own a piece (either swipe counts correct) | `team` + `team_also` |
 
-1. **`entities:`** — the teams / places people get sent to (defined **once** each).
-2. **`scenarios:`** — the questions shown in the game (each points at one entity).
+### Three ways to point at who helps
 
-### To add a question for a team that already exists
-
-1. Open `public/content.yaml`.
-2. Find the `scenarios:` section and **copy an existing question block** (everything from `- id:`
-   down to its last line).
-3. Paste it at the end and change the text. Keep the indentation exactly the same.
+**1. Map to a team** (simplest): the reveal shows that team.
 
 ```yaml
-  - id: my-new-question          # a short unique name, no spaces
-    persona: fellow              # fellow (predocs & postdocs) | staff | PI | core-facility
-    question: My question text shown on the card.
-    data_science: yes            # is this a DSC question?  yes / no  ← the correct answer
-    entity: image-analysis       # which team — must match an id under entities:
-    why: One sentence explaining the answer.
-    difficulty: easy             # optional: easy | boundary | hard
+  - id: phenotype-ml
+    persona: fellow                 # fellow | staff | PI | core-facility
+    question: I want a model to tell apart my cell phenotypes automatically.
+    data_science: yes
+    team: bioimage-analysis         # an id under teams:
+    why: Training a classifier on images is bioimage analysis.
 ```
 
-4. Save the file. In the dev server, just **refresh the page** — your question appears.
-
-### To add a new team
-
-Add a block under `entities:`. Only `name` and `kind` are required; everything else is optional
-and only shows up if you fill it in (a team with no Mattermost link simply shows no Mattermost
-button).
+**2. Map to specific people**: pin exact members (in order) when a named person owns the thing.
 
 ```yaml
-  my-team:                       # the id you reference from scenarios
+  - id: jupyter-down
+    persona: fellow
+    question: The shared JupyterHub server keeps crashing.
+    data_science: shared
+    team: internal-support
+    team_also: it-services          # the partner, for a shared answer
+    people: [renato-alves]          # member ids; overrides skill matching
+    why: The DSC runs JupyterHub; IT provides the infrastructure under it.
+```
+
+**3. Map to competencies**: surface the right skill, wherever it sits.
+
+```yaml
+  - id: slow-script
+    persona: fellow
+    question: My Python script is painfully slow. Can someone speed it up?
+    data_science: yes
+    team: internal-support          # entry point
+    needs: [software]               # the skill that matters
+    cross_team: true                # find that skill in ANY DSC team
+    why: Profiling and optimising code is research software engineering.
+```
+
+### All optional fields
+
+| Field | Use it to… | Effect on the reveal |
+| --- | --- | --- |
+| `team_also: <id>` | name the partner on a `shared` scenario | second team under "…and who handles the rest" |
+| `teams: [<id>, …]` | list other teams that could also help | adds an "Other teams that can help" list; people drawn from all |
+| `cross_team: true` | match people across **all** DSC teams | entry point shows as a generic "Data Science Centre" |
+| `needs: [<competency>, …]` | surface the most relevant people and channels | members whose `competencies` match, plus auto matched `channels` |
+| `people: [<member-id>, …]` | pin exact people, in order | shows exactly those, overriding `needs` |
+| `channels: [<channel-id>, …]` | pin exact channels | shows exactly those, overriding `needs` based channels |
+| `image: images/…` | add a card illustration | drop the file in `public/images/` |
+
+Precedence: `people:` wins; else `needs` filters the routed team(s), or all DSC teams when
+`cross_team: true`; with no `needs` the whole routed team is shown. The reveal shows 3 people by
+default with a "show all" toggle.
+
+### Adding a team, member or channel
+
+```yaml
+teams:
+  my-team:
     name: My Team
-    kind: dsc                    # dsc = part of the Data Science Centre | external = redirect elsewhere
+    kind: dsc                 # dsc | external
     blurb: One line about what we help with.
-    icon: microscope             # optional, see the icon list below
-    image: images/my-team.png    # optional illustration (see Images)
-    people:
-      - name: Jane Doe
-        role: Analyst
-        email: jane.doe@embl.org
-    ticket: https://tickets.embl.org/new?queue=my-team       # optional
-    mattermost: https://chat.embl.org/dsc/channels/my-team   # optional
-    link: https://www.embl.org/my-team                       # optional (external redirect)
+    icon: microscope          # see icon list below
+    ticket: https://bio-it.embl.de/...  # optional "open a ticket" / booking link
+
+members:
+  jane-doe:
+    name: Jane Doe
+    team: my-team
+    competencies: [image-analysis]      # optional, drives needs matching
+    photo: https://content.embl.org/...  # optional
 ```
 
-### Images
-
-Drop image files into **`public/images/`** and reference them by path, e.g. `image: images/cells.jpg`
-on a scenario (card illustration) or an entity (team marker).
-
-### Available `icon` names
-
-Teams are distinguished by **icon**, not colour (an EMBL design rule). If you don't set an `image`,
-pick an `icon` from this list (anything else falls back to a neutral icon):
-
-`beaker`, `book`, `brain`, `building`, `calculator`, `camera`, `cloud`, `cpu`, `database`, `flask`,
-`folder`, `graduation-cap`, `hard-drive`, `image`, `laptop`, `line-chart`, `mail`, `megaphone`,
-`microscope`, `network`, `palette`, `server`, `settings`, `share`, `sigma`, `spreadsheet`,
-`workflow`, `wrench`.
-
-### Check your file
-
-Run `npm run validate`. If something is off, it names the exact scenario and field, e.g.:
-
-```
-✖ content.yaml is not valid:
-   • scenario "cells" → persona: Invalid enum value. Expected 'predoc' | 'postdoc' | ...
-   • scenario "poster" → entity: references unknown entity "comms". Add it under entities: or fix the reference.
-```
-
-The running app shows the same friendly errors on screen if the file is broken, so it never just
-crashes.
+Teams are distinguished by **icon**, not colour (an EMBL rule). Unknown names fall back to a neutral
+icon: `beaker`, `book`, `brain`, `building`, `calculator`, `camera`, `cloud`, `cpu`, `database`,
+`flask`, `folder`, `graduation-cap`, `hard-drive`, `image`, `laptop`, `line-chart`, `mail`,
+`megaphone`, `microscope`, `network`, `palette`, `server`, `settings`, `share`, `sigma`,
+`spreadsheet`, `workflow`, `wrench`.
 
 ---
 
-## Building & deploying
+## QR code and deep links
 
-The build is a folder of static files (`dist/`) with a **relative base path**, so it works served
-from a domain root, a project sub-path, or an intranet path without changes.
+Deploy, copy the URL, and generate a QR code (e.g. `npx qrcode "https://dsc-concierge.embl.org/" -o dsc-qr.png`).
+Visitors scan and play on their phones, no install.
 
-```bash
-npm run build      # → dist/
-```
-
-### GitLab Pages (self-hosted GitLab)
-
-A ready-to-use [`.gitlab-ci.yml`](.gitlab-ci.yml) is included. On a push to the default branch it
-validates the content, runs the tests, builds, and publishes to GitLab Pages. The site appears at
-your project's Pages URL (e.g. `https://<group>.pages.embl.org/<project>/`).
-
-### Docker / Kubernetes (self-hosted)
-
-A multi-stage [`Dockerfile`](Dockerfile) builds the site and serves it with nginx
-([`nginx.conf`](nginx.conf) handles SPA fallback and serves `content.yaml` uncached).
-
-```bash
-docker build -t dsc-concierge .
-docker run --rm -p 8080:80 dsc-concierge      # → http://localhost:8080
-```
-
-Deploy that image behind your usual Kubernetes Deployment + Service + Ingress. It listens on port 80.
-
-### Any static host
-
-`dist/` can also be dropped onto Netlify, Vercel, GitHub Pages, or any web server / intranet path.
+Routing lives in the URL hash, so these are shareable and survive refresh: `#explore`,
+`#explore/<tab>` (e.g. `#explore/consulting`), `#directory`.
 
 ---
 
-## QR code for the booth
+## Developers
 
-1. Deploy the app and copy its URL (e.g. `https://dsc-concierge.embl.org/`).
-2. Generate a QR code pointing at that URL — for example with the
-   [`qrcode`](https://www.npmjs.com/package/qrcode) CLI:
+Building, deploying, releasing, design tokens, accessibility and the project layout live in
+[DEVELOPMENT.md](DEVELOPMENT.md).
 
-   ```bash
-   npx qrcode "https://dsc-concierge.embl.org/" -o dsc-qr.png
-   ```
+## Future work
 
-   (or any QR generator / your phone's built-in one).
-3. Print it for the booth. Visitors scan it and play on their own phones — no install.
-
-Tip: deep-link straight to the directory with `#directory`, e.g.
-`https://dsc-concierge.embl.org/#directory`.
+v1 is intentionally backend free; the typed content/game layer (`src/content`, `src/game`) is the
+seam for adding one later: a shared leaderboard, "submit your own question", or usage analytics.
 
 ---
 
-## Design
-
-Implements the [EMBL Corporate Design Guidelines](https://www.embl.org/guidelines/design/):
-green-led and white-led, IBM Plex Sans typography, EMBL colour tokens, organic roundels as the
-signature element, and **no per-team colour coding** (teams differ by icon/illustration only).
-Interactive elements use EMBL link blue; red is reserved for the "not quite" alert beat.
-
-The EMBL logo is **not** bundled — it's protected and needs Design-team sign-off. There's a
-placeholder slot top-right (`src/components/Logo.tsx`); drop the approved asset into `public/` and
-swap the markup there.
-
-Accessibility: keyboard play (`→`/`Y` = yes, `←`/`N` = no), visible focus, sufficient contrast,
-meaning never carried by colour alone, and `prefers-reduced-motion` respected.
-
----
-
-## Project layout
-
-```
-public/content.yaml      ← the only file content editors touch
-src/content/             schema.ts (zod + types), loadContent.ts (runtime), content.test.ts
-src/game/useGame.ts      game state (deck, score, streak)
-src/screens/             Landing, Swipe, Reveal, Recap, Directory
-src/components/           ScenarioCard, EntityActions, EntityIcon, OrganicShape, …
-scripts/validate-content.ts   `npm run validate`
-```
-
----
-
-## Future work (extension points, not built in v1)
-
-v1 is intentionally backend-free. The typed content/game data layer (`src/content`, `src/game`) is
-the clean seam for adding a backend later. Each of these would need server-side support:
-
-- **Shared leaderboard** — persist scores/streaks across players at the booth.
-- **"Submit your own question"** — let visitors propose scenarios for review.
-- **Usage analytics** — which scenarios are seen, answer accuracy, popular routes.
-
-None of these are implemented yet; they're noted here so the data layer stays the place to plug
-them in.
+_Vibe-coded, with love, for the EMBL Data Science Centre._
