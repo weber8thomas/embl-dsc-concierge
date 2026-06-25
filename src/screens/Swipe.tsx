@@ -70,7 +70,11 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
         <StreakCounter streak={streak} />
       </div>
 
-      <div className="flex flex-1 flex-col justify-center">
+      {/* Auto-margin centering (not justify-center) so the content centres when
+          it fits but stays scrollable from the top when it overflows the
+          viewport on small screens. */}
+      <div className="flex flex-1 flex-col">
+        <div className="my-auto w-full py-2">
         {/* The constant prompt — prominent, above the card. */}
         <h1 className="text-balance text-center text-2xl font-bold tracking-tight text-embl-grey-darkest sm:text-3xl">
           Can the Data Science Centre help with this?
@@ -115,6 +119,7 @@ export function Swipe({ scenario, index, total, streak, onAnswer, onHome }: Swip
             <Check className="h-6 w-6" aria-hidden="true" />
             Yes
           </button>
+        </div>
         </div>
       </div>
     </Shell>

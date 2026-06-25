@@ -229,12 +229,14 @@ members:
     position: Bioimage Analyst
     team: bioimage-analysis
     competencies: [image-analysis, workflows, software]
+    photo: https://content.embl.org/sites/default/files/persons/CP-60036958.jpg
   yi-sun:
     name: Yi Sun
     profile: https://www.embl.org/people/person/yi-sun
     position: Research Software Engineer
     team: bioimage-analysis
     competencies: [image-analysis, workflows, infrastructure]
+    photo: https://content.embl.org/sites/default/files/persons/CP-60032472.jpg
   jean-karim-heriche:
     name: Jean-Karim Hériché
     profile: https://www.embl.org/people/person/jeankarim-heriche

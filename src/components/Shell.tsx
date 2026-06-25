@@ -21,7 +21,7 @@ interface ShellProps {
  */
 export function Shell({ children, lead, onHome, width = 'narrow' }: ShellProps) {
   return (
-    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-white">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden bg-white">
       {/* Subtle data-science motif (dot grid + node-link), behind the organic shapes */}
       <DataField />
 
